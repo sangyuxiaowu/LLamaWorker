@@ -1,0 +1,6 @@
+@LLamaWorker_HostAddress = http://localhost:5114
+
+GET {{LLamaWorker_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
