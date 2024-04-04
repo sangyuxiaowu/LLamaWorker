@@ -1,3 +1,4 @@
+using LLamaWorker.Models.OpenAI;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LLamaWorker.Controllers
@@ -18,6 +19,12 @@ namespace LLamaWorker.Controllers
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
+        }
+
+        [HttpPost("/chat/completions")]
+        public async Task<ChatCompletionResponse> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request)
+        {
+            return null;
         }
     }
 }

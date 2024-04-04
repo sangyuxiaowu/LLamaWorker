@@ -1,5 +1,8 @@
 
+using LLamaWorker.Middleware;
+using LLamaWorker.Models;
 using LLamaWorker.Services;
+using Microsoft.Extensions.Options;
 
 namespace LLamaWorker
 {
@@ -41,8 +44,8 @@ namespace LLamaWorker
             }
 
             app.UseAuthorization();
-
-
+            // 处理 stop 参数
+            app.UseMiddleware<StopConversionMiddleware>();
             app.MapControllers();
 
             app.Run();
