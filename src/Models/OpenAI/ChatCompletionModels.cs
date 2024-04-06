@@ -1,4 +1,6 @@
-﻿namespace LLamaWorker.Models.OpenAI
+﻿using LLamaWorker.Models.OpenAI;
+
+namespace LLamaWorker.Models.OpenAI
 {
     /// <summary>
     /// 对话完成请求
@@ -76,7 +78,7 @@
         /// <summary>
         /// 角色
         /// </summary>
-        public string role { get; set; } = string.Empty;
+        public string? role { get; set; } = string.Empty;
         /// <summary>
         /// 对话内容
         /// </summary>
@@ -141,4 +143,54 @@
         /// </summary>
         public string finish_reason { get; set; } = string.Empty;
     }
+}
+
+/// <summary>
+/// 流式响应的聊天完成响应
+/// https://platform.openai.com/docs/api-reference/chat/streaming
+/// </summary>
+public class ChatCompletionChunkResponse
+{
+    /// <summary>
+    /// 聊天完成的唯一标识符
+    /// </summary>
+    public string id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 对象类型，始终为chat.completion.chunk
+    /// </summary>
+    public string _object = "chat.completion.chunk";
+
+    /// <summary>
+    /// 创建聊天完成的Unix时间戳（以秒为单位）
+    /// </summary>
+    public long created { get; set; }
+
+    /// <summary>
+    /// 用于聊天完成的模型
+    /// </summary>
+    public string model { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 聊天完成选择的列表。如果n大于1，则可以有多个
+    /// </summary>
+    public ChatCompletionChunkResponseChoice[] choices { get; set; } = Array.Empty<ChatCompletionChunkResponseChoice>();
+}
+
+public class ChatCompletionChunkResponseChoice
+{
+    /// <summary>
+    /// 选项列表中选项的索引
+    /// </summary>
+    public int index { get; set; }
+
+    /// <summary>
+    /// 由流式模型响应生成的聊天完成增量。
+    /// </summary>
+    public ChatCompletionMessage? delta { get; set; } = new ();
+
+    /// <summary>
+    /// 模型停止生成令牌的原因。
+    /// </summary>
+    public string? finish_reason { get; set; }
 }

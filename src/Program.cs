@@ -18,8 +18,8 @@ namespace LLamaWorker
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.Configure<Models.LLmModelSettings>(
-                builder.Configuration.GetSection("LLmModel")
+            builder.Services.Configure<LLmModelSettings>(
+                builder.Configuration.GetSection(nameof(LLmModelSettings))
             );
 
             builder.Services.AddSingleton<LLmModelService>();

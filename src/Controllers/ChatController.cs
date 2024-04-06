@@ -1,5 +1,7 @@
 using LLamaWorker.Models.OpenAI;
+using LLamaWorker.Services;
 using Microsoft.AspNetCore.Mvc;
+using static System.Net.WebRequestMethods;
 
 namespace LLamaWorker.Controllers
 {
@@ -22,9 +24,34 @@ namespace LLamaWorker.Controllers
         }
 
         [HttpPost("/chat/completions")]
-        public async Task<ChatCompletionResponse> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request)
+        public async Task<IResult> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request, [FromServices] LLmModelService service)
         {
-            return null;
+            try
+            {
+                if (request.stream)
+                {
+                    Response.Headers.ContentType = "text/event-stream";
+                    Response.Headers.CacheControl = "no-cache";
+                    await Response.Body.FlushAsync();
+
+                    await foreach (var item in service.CreateChatCompletionStreamAsync(request))
+                    {
+                        await Response.WriteAsync(item);
+                        await Response.Body.FlushAsync();
+                    }
+                    return Results.Empty;
+                }
+                else
+                {
+                    return Results.Ok(await service.CreateChatCompletionAsync(request));
+                }
+                
+            }
+            catch(Exception ex)
+            {
+                return Results.Problem($"{ex}");
+            }
+                
         }
     }
 }
