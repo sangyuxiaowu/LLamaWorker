@@ -30,14 +30,23 @@ namespace LLamaWorker.Controllers
             {
                 if (request.stream)
                 {
-                    Response.Headers.ContentType = "text/event-stream";
-                    Response.Headers.CacheControl = "no-cache";
-                    await Response.Body.FlushAsync();
 
+                    var queue = new Queue<string>();
                     await foreach (var item in service.CreateChatCompletionStreamAsync(request))
                     {
-                        await Response.WriteAsync(item);
-                        await Response.Body.FlushAsync();
+                        queue.Enqueue(item);
+                        if (queue.Count > 1)
+                        {
+                            if (queue.Count == 2)
+                            {
+                                Response.Headers.ContentType = "text/event-stream";
+                                Response.Headers.CacheControl = "no-cache";
+                                await Response.Body.FlushAsync();
+                                await Response.WriteAsync(queue.Dequeue());
+                            }
+                            await Response.WriteAsync(queue.Dequeue());
+                            await Response.Body.FlushAsync();
+                        }
                     }
                     return Results.Empty;
                 }
@@ -49,7 +58,8 @@ namespace LLamaWorker.Controllers
             }
             catch(Exception ex)
             {
-                return Results.Problem($"{ex}");
+                _logger.LogError(ex, "Error in CreateChatCompletionAsync");
+                return Results.Problem($"{ex.Message}");
             }
                 
         }

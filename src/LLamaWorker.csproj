@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LLamaSharp" Version="0.11.1" />
-    <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.11.1" />
+    <PackageReference Include="LLamaSharp" Version="0.11.2" />
+    <PackageReference Include="LLamaSharp.Backend.Cuda12" Version="0.11.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
