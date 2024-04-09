@@ -265,7 +265,17 @@ namespace LLamaWorker.Services
             var stop = new List<string>();
             if (request.stop != null)
             {
-                stop.AddRange(request.stop);
+                foreach (var item in request.stop)
+                {
+                    if (!string.IsNullOrWhiteSpace(item))
+                    {
+                        stop.Add(item.ToString());
+                    }
+                    if (stop.Count >= 3)
+                    {
+                        break;
+                    }
+                }
                 // 如果没有加入写开始标记，并且没有超过3个停止标记
                 if (!stop.Contains(startToken) && stop.Count<3)
                 {
