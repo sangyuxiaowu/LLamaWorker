@@ -3,6 +3,7 @@ using LLamaWorker.Middleware;
 using LLamaWorker.Models;
 using LLamaWorker.Services;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 namespace LLamaWorker
 {
@@ -16,7 +17,11 @@ namespace LLamaWorker
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+            });
 
             builder.Services.Configure<LLmModelSettings>(
                 builder.Configuration.GetSection(nameof(LLmModelSettings))
