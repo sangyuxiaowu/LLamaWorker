@@ -5,6 +5,9 @@ using static System.Net.WebRequestMethods;
 
 namespace LLamaWorker.Controllers
 {
+    /// <summary>
+    /// 对话完成控制器
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class ChatController : ControllerBase
@@ -17,12 +20,16 @@ namespace LLamaWorker.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
+        /// <summary>
+        /// 对话完成请求
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="service"></param>
+        /// <remarks>
+        /// 默认不开启流式，需要主动设置 stream:true
+        /// </remarks>
+        /// <returns></returns>
+        [HttpPost("/v1/chat/completions")]
         [HttpPost("/chat/completions")]
         public async Task<IResult> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request, [FromServices] LLmModelService service)
         {
@@ -31,20 +38,25 @@ namespace LLamaWorker.Controllers
                 if (request.stream)
                 {
 
-                    var queue = new Queue<string>();
+                    string first = " ";
                     await foreach (var item in service.CreateChatCompletionStreamAsync(request))
                     {
-                        queue.Enqueue(item);
-                        if (queue.Count > 1)
+                        if(first == " ")
                         {
-                            if (queue.Count == 2)
+                            first = item;
+                        }
+                        else
+                        {
+                            if (first.Length > 1)
                             {
                                 Response.Headers.ContentType = "text/event-stream";
                                 Response.Headers.CacheControl = "no-cache";
                                 await Response.Body.FlushAsync();
-                                await Response.WriteAsync(queue.Dequeue());
+                                await Response.WriteAsync(first);
+                                await Response.Body.FlushAsync();
+                                first = "";
                             }
-                            await Response.WriteAsync(queue.Dequeue());
+                            await Response.WriteAsync(item);
                             await Response.Body.FlushAsync();
                         }
                     }

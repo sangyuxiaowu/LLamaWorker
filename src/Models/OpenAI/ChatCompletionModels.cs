@@ -11,12 +11,13 @@ namespace LLamaWorker.Models.OpenAI
         /// <summary>
         /// 模型名称
         /// </summary>
+        /// <example>gpt</example>
         public string model { get; set; } = string.Empty;
 
         /// <summary>
         /// 为每条输入消息生成多少个聊天完成选项。
         /// </summary>
-        public int n { get; set; } = 1;
+        //public int n { get; set; } = 1;
 
         /// <summary>
         /// 对话历史
@@ -28,6 +29,7 @@ namespace LLamaWorker.Models.OpenAI
         /// 增加温度会导致更多意外或创造性的响应。
         /// 尝试调整温度或 Top P，但不要同时调整两者。
         /// </summary>
+        /// <example>1.0</example>
         public float temperature { get; set; } = 1.0f;
 
         /// <summary>
@@ -36,20 +38,23 @@ namespace LLamaWorker.Models.OpenAI
         /// 增加 Top P 将让模型从高概率和低概率的令牌中进行选择。
         /// 尝试调整温度或 Top P，但不要同时调整两者。
         /// </summary>
+        /// <example>1.0</example>
         public float top_p { get; set; } = 1.0f;
 
         /// <summary>
         /// 流式响应，默认为 false。如果设置为 true，则服务端将在响应使用 HTTP Stream Response。
         /// </summary>
+        /// <example>false</example>
         public bool stream { get; set; } = false;
 
         /// <summary>
         /// 停止序列：使模型在所需点结束响应。
         /// 模型响应将在指定序列之前结束，因此不包含停止序列文本。
-        /// 对于 ChatGPT，使用 <|im_end|> 可确保模型响应不会生成后续用户查询。
+        /// 对于 ChatGPT，使用<![CDATA[ <|im_end|> ]]>可确保模型响应不会生成后续用户查询。
         /// 可以包含多达四个停止序列。
         /// 可以为 string / array / null，中间件将处理为数组。
         /// </summary>
+        /// <example>null</example>
         public string[]? stop { get; set; } = null;
 
         /// <summary>
@@ -58,6 +63,7 @@ namespace LLamaWorker.Models.OpenAI
         /// 这些令牌在提示（包括系统消息、示例、消息历史记录和用户查询）和模型响应之间共享。
         /// 一个令牌大约是典型英文文本的 4 个字符。
         /// </summary>
+        /// <example>512</example>
         public int? max_tokens { get; set; } = null;
 
         /// <summary>
@@ -78,10 +84,12 @@ namespace LLamaWorker.Models.OpenAI
         /// <summary>
         /// 角色
         /// </summary>
+        /// <example>user</example>
         public string? role { get; set; } = string.Empty;
         /// <summary>
         /// 对话内容
         /// </summary>
+        /// <example>你好</example>
         public string content { get; set; } = string.Empty;
     }
 

@@ -64,6 +64,8 @@ namespace LLamaWorker.Services
 
             var executor = new InteractiveExecutor(_context);
             ChatSession session = new(executor, chatHistory);
+            // 清除缓存
+            session.Executor.Context.NativeHandle.KvCacheClear();
 
             // 设置历史转换器和输出转换器
             session.WithHistoryTransform(new ChatMLHistoryTransform())
@@ -78,8 +80,6 @@ namespace LLamaWorker.Services
 
             var tokenizedInput = _context.Tokenize(lastMessage.Content);
             var tokenizedOutput = _context.Tokenize(result);
-
-            //session.Executor.Context.Dispose();
 
             return new ChatCompletionResponse { 
                 id = $"chatcmpl-{Guid.NewGuid()}",
@@ -129,6 +129,8 @@ namespace LLamaWorker.Services
 
             var executor = new InteractiveExecutor(_context);
             ChatSession session = new(executor, chatHistory);
+            // 清除缓存
+            session.Executor.Context.NativeHandle.KvCacheClear();
 
             // 设置历史转换器和输出转换器
             session.WithHistoryTransform(new ChatMLHistoryTransform())
@@ -288,7 +290,7 @@ namespace LLamaWorker.Services
             }
             InferenceParams inferenceParams = new InferenceParams()
             {
-                MaxTokens = request.max_tokens ?? 512,
+                MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : 512,
                 AntiPrompts = stop,
                 Temperature = request.temperature,
                 TopP = request.top_p,

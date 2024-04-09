@@ -35,7 +35,7 @@ namespace LLamaWorker.Services
                 }
             }
             sb.AppendLine(assistantToken);
-            Console.WriteLine(sb.ToString());
+            //Console.WriteLine(sb.ToString());
             return sb.ToString();
         }
 
