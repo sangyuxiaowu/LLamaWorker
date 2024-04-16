@@ -2,6 +2,9 @@
 
 namespace LLamaWorker.Models
 {
+    /// <summary>
+    /// 模型配置信息
+    /// </summary>
     public class LLmModelSettings
     {
         /// <summary>
@@ -29,14 +32,47 @@ namespace LLamaWorker.Models
         /// </summary>
         public ModelParams ModelParams { get; set; }
 
+        /// <summary>
+        /// 模型转换参数
+        /// </summary>
+        public WithTransform? WithTransform { get; set; }
+
+        /// <summary>
+        /// 停止词
+        /// </summary>
+        public string[]? AntiPrompts { get; set; }
+
+        /// <summary>
+        /// 模型配置信息
+        /// </summary>
+        /// <param name="modelPath">模型路径</param>
         public LLmModelSettings(string modelPath)
         {
             ModelParams = new ModelParams(modelPath);
         }
 
+        /// <summary>
+        /// 模型配置信息
+        /// </summary>
         public LLmModelSettings()
         {
             ModelParams = new ModelParams("");
         }
+    }
+
+    /// <summary>
+    /// 模型转换参数
+    /// </summary>
+    public class WithTransform
+    {
+        /// <summary>
+        /// 对话转换
+        /// </summary>
+        public string? HistoryTransform { get; set; }
+
+        /// <summary>
+        /// 输出转换
+        /// </summary>
+        public string? OutputTransform { get; set; }
     }
 }

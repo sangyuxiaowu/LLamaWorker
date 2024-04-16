@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using LLama.Abstractions;
 
 namespace LLamaWorker.Services
 {
@@ -17,6 +18,7 @@ namespace LLamaWorker.Services
         private readonly LLmModelSettings _settings;
         private readonly LLamaWeights _model;
         private readonly LLamaContext _context;
+        private readonly int _loadModelIndex = 0;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
@@ -30,12 +32,13 @@ namespace LLamaWorker.Services
         /// </summary>
         private bool _disposedValue = false;
 
-        public LLmModelService(IOptions<LLmModelSettings> options, ILogger<LLmModelService> logger)
+        public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
         {
             _logger = logger;
-            _settings = options.Value;
+            _settings = options.Value[_loadModelIndex];
 
-            if(string.IsNullOrWhiteSpace(_settings.ModelParams.ModelPath) ||
+
+            if (string.IsNullOrWhiteSpace(_settings.ModelParams.ModelPath) ||
                 !File.Exists(_settings.ModelParams.ModelPath))
             {
                 _logger.LogError("Model path is error: {path}.", _settings.ModelParams.ModelPath);
@@ -68,8 +71,30 @@ namespace LLamaWorker.Services
             session.Executor.Context.NativeHandle.KvCacheClear();
 
             // 设置历史转换器和输出转换器
-            session.WithHistoryTransform(new ChatMLHistoryTransform())
-                .WithOutputTransform(new ChatMLTextStreamTransform());
+            if (_settings.WithTransform?.HistoryTransform != null)
+            {
+                var type = Type.GetType(_settings.WithTransform.HistoryTransform);
+                if (type != null)
+                {
+                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
+                    if (historyTransform != null)
+                    {
+                        session.WithHistoryTransform(historyTransform);
+                    }
+                }
+            }
+            if (_settings.WithTransform?.OutputTransform != null)
+            {
+                var type = Type.GetType(_settings.WithTransform.OutputTransform);
+                if (type != null)
+                {
+                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
+                    if (outputTransform != null)
+                    {
+                        session.WithOutputTransform(outputTransform);
+                    }
+                }
+            }
 
             var result = "";
             await foreach (var output in session.ChatAsync(lastMessage, genParams))
@@ -133,8 +158,30 @@ namespace LLamaWorker.Services
             session.Executor.Context.NativeHandle.KvCacheClear();
 
             // 设置历史转换器和输出转换器
-            session.WithHistoryTransform(new ChatMLHistoryTransform())
-                .WithOutputTransform(new ChatMLTextStreamTransform());
+            if (_settings.WithTransform?.HistoryTransform != null)
+            {
+                var type = Type.GetType(_settings.WithTransform.HistoryTransform);
+                if (type != null)
+                {
+                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
+                    if (historyTransform != null)
+                    {
+                        session.WithHistoryTransform(historyTransform);
+                    }
+                }
+            }
+            if (_settings.WithTransform?.OutputTransform != null)
+            {
+                var type = Type.GetType(_settings.WithTransform.OutputTransform);
+                if (type != null)
+                {
+                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
+                    if (outputTransform != null)
+                    {
+                        session.WithOutputTransform(outputTransform);
+                    }
+                }
+            }
 
             var id = $"chatcmpl-{Guid.NewGuid()}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -261,33 +308,23 @@ namespace LLamaWorker.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        private static InferenceParams GetInferenceParams(ChatCompletionRequest request)
+        private InferenceParams GetInferenceParams(ChatCompletionRequest request)
         {
-            const string startToken = "<|im_start|>";
             var stop = new List<string>();
             if (request.stop != null)
             {
-                foreach (var item in request.stop)
-                {
-                    if (!string.IsNullOrWhiteSpace(item))
-                    {
-                        stop.Add(item.ToString());
-                    }
-                    if (stop.Count >= 3)
-                    {
-                        break;
-                    }
-                }
-                // 如果没有加入写开始标记，并且没有超过3个停止标记
-                if (!stop.Contains(startToken) && stop.Count<3)
-                {
-                    stop.Add(startToken);
-                }
+                stop.AddRange(request.stop);
             }
-            else
+            if(_settings.AntiPrompts?.Length>0)
             {
-                stop.Add(startToken);
+                stop.AddRange(_settings.AntiPrompts);
             }
+            if (stop.Count > 0)
+            {
+                //去重，去空，并且至多3个
+                stop = stop.Distinct().Where(x => !string.IsNullOrWhiteSpace(x)).Take(3).ToList();
+            }
+
             InferenceParams inferenceParams = new InferenceParams()
             {
                 MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : 512,
@@ -299,7 +336,6 @@ namespace LLamaWorker.Services
             };
             return inferenceParams;
         }
-
 
         /// <summary>
         /// 释放非托管资源

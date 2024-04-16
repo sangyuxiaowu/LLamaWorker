@@ -2,8 +2,11 @@
 using LLama.Common;
 using System.Text;
 
-namespace LLamaWorker.Services
+namespace LLamaWorker.Transform
 {
+    /// <summary>
+    /// ChatML 历史记录转换
+    /// </summary>
     public class ChatMLHistoryTransform : IHistoryTransform
     {
         private const string userToken = "<|im_start|>user";
@@ -16,6 +19,11 @@ namespace LLamaWorker.Services
             return new ChatMLHistoryTransform();
         }
 
+        /// <summary>
+        /// 历史记录转换为文本
+        /// </summary>
+        /// <param name="history"></param>
+        /// <returns></returns>
         public virtual string HistoryToText(ChatHistory history)
         {
             StringBuilder sb = new();
@@ -39,6 +47,12 @@ namespace LLamaWorker.Services
             return sb.ToString();
         }
 
+        /// <summary>
+        /// 文本转换为历史记录
+        /// </summary>
+        /// <param name="role"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
         public virtual ChatHistory TextToHistory(AuthorRole role, string text)
         {
             ChatHistory history = new ChatHistory();
@@ -46,6 +60,13 @@ namespace LLamaWorker.Services
             return history;
         }
 
+
+        /// <summary>
+        /// 去除文本中的角色标记
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="role"></param>
+        /// <returns></returns>
         public virtual string TrimNamesFromText(string text, AuthorRole role)
         {
             if (role == AuthorRole.User && text.StartsWith(userToken))
@@ -60,12 +81,21 @@ namespace LLamaWorker.Services
         }
     }
 
+    /// <summary>
+    /// 处理结尾多余的输出
+    /// </summary>
     public class ChatMLTextStreamTransform
         : ITextStreamTransform
     {
         private const string startToken = "<|im_start|>";
         // 奇奇怪怪，总是在结尾有一个或多个问号
         private const string keyToken = "???<|im_start|>";
+
+        /// <summary>
+        /// 转换文本流
+        /// </summary>
+        /// <param name="tokens"></param>
+        /// <returns></returns>
         public async IAsyncEnumerable<string> TransformAsync(IAsyncEnumerable<string> tokens)
         {
             var tmp = new StringBuilder();
@@ -98,6 +128,10 @@ namespace LLamaWorker.Services
             }
         }
 
+        /// <summary>
+        /// 克隆文本流转换器
+        /// </summary>
+        /// <returns></returns>
         public ITextStreamTransform Clone()
         {
             return new ChatMLTextStreamTransform();

@@ -23,7 +23,7 @@ namespace LLamaWorker
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
 
-            builder.Services.Configure<LLmModelSettings>(
+            builder.Services.Configure<List<LLmModelSettings>>(
                 builder.Configuration.GetSection(nameof(LLmModelSettings))
             );
 
