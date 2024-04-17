@@ -12,6 +12,9 @@ using LLama.Abstractions;
 
 namespace LLamaWorker.Services
 {
+    /// <summary>
+    /// LLM 模型服务
+    /// </summary>
     public class LLmModelService : IDisposable
     {
         private readonly ILogger<LLmModelService> _logger;
@@ -32,6 +35,13 @@ namespace LLamaWorker.Services
         /// </summary>
         private bool _disposedValue = false;
 
+
+        /// <summary>
+        /// LLmModelService
+        /// </summary>
+        /// <param name="options">模型配置列表</param>
+        /// <param name="logger">日志</param>
+        /// <exception cref="ArgumentException"></exception>
         public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
         {
             _logger = logger;
@@ -49,6 +59,20 @@ namespace LLamaWorker.Services
             _context = new LLamaContext(_model, _settings.ModelParams);
         }
 
+        /// <summary>
+        /// 获取模型信息
+        /// </summary>
+        /// <returns></returns>
+        public IReadOnlyDictionary<string,string> GetModelInfo()
+        {
+            return _model.Metadata;
+        }
+
+        /// <summary>
+        /// 聊天完成
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request)
         {
             var genParams = GetInferenceParams(request);
@@ -132,7 +156,7 @@ namespace LLamaWorker.Services
         }
 
         /// <summary>
-        /// 流式生成聊天完成
+        /// 流式生成-聊天完成
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -353,6 +377,9 @@ namespace LLamaWorker.Services
             }
         }
 
+        /// <summary>
+        /// 释放资源
+        /// </summary>
         public void Dispose()
         {
             Dispose(disposing: true);

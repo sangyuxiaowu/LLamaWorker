@@ -109,22 +109,11 @@ namespace LLamaWorker.Transform
 
                 if (tmp.ToString().Contains(startToken))
                 {
-                    var result = tmp.ToString();
-                    var index = result.IndexOf(startToken);
-                    var startIndex = index;
-                    for (int i = 0; i < 2 && startIndex > 0 && result[startIndex - 1] == '?'; i++)
-                    {
-                        startIndex--;
-                    }
-                    result = result.Substring(0, startIndex);
-                    //File.AppendAllText("chatml.txt", result + "\n");
-                    yield return result;
+                    yield return tmp.ToString().Replace(startToken, "");
                     tmp.Clear();
                 }
                 else if (!startToken.Contains(tmp.ToString()))
                 {
-                    //var result = tmp.ToString();
-                    //File.AppendAllText("chatml.txt", result + "\n");
                     yield return tmp.ToString();
                     tmp.Clear();
                 }
@@ -137,7 +126,7 @@ namespace LLamaWorker.Transform
         /// <returns></returns>
         public ITextStreamTransform Clone()
         {
-            return new ChatMLTextStreamTransform();
+            return new GemmaTextStreamTransform();
         }
     }
 
