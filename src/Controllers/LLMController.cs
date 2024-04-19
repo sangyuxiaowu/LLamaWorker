@@ -29,7 +29,17 @@ namespace LLamaWorker.Controllers
             var json = service.GetModelInfo();
             return new JsonResult(json);
         }
-        
+
+        /// <summary>
+        /// 返回已配置的模型信息
+        /// </summary>
+        [HttpGet("/models/config")]
+        public JsonResult GetConfigModels([FromServices] LLmModelService service)
+        {
+            var json = service.GetModelSettings();
+            return new JsonResult(json);
+        }
+
 
     }
 }

@@ -7,16 +7,32 @@ namespace LLamaWorker.Transform
     /// <summary>
     /// ChatML 历史记录转换
     /// </summary>
-    public class ChatMLHistoryTransform : IHistoryTransform
+    public class BaseHistoryTransform : IHistoryTransform
     {
-        private const string userToken = "<|im_start|>user";
-        private const string assistantToken = "<|im_start|>assistant";
-        private const string systemToken = "<|im_start|>system";
-        private const string endToken = "<|im_end|>";
+        /// <summary>
+        /// 用户标记
+        /// </summary>
+        protected virtual string userToken => "<|im_start|>user";
+
+        /// <summary>
+        /// 助理标记
+        /// </summary>
+        protected virtual string assistantToken => "<|im_start|>assistant";
+
+        /// <summary>
+        /// 系统标记
+        /// </summary>
+        protected virtual string systemToken => "<|im_start|>system";
+
+        /// <summary>
+        /// 结束标记
+        /// </summary>
+        protected virtual string endToken => "<|im_end|>";
+        
 
         IHistoryTransform IHistoryTransform.Clone()
         {
-            return new ChatMLHistoryTransform();
+            return new BaseHistoryTransform();
         }
 
         /// <summary>
@@ -26,16 +42,30 @@ namespace LLamaWorker.Transform
         /// <returns></returns>
         public virtual string HistoryToText(ChatHistory history)
         {
+
+            // 若有系统消息，则会放在最开始
+            // 用于处理模型不支持系统消息角色设定的情况
+            var systemMessage = "";
+
             StringBuilder sb = new();
             foreach (var message in history.Messages)
             {
                 if (message.AuthorRole == AuthorRole.User)
                 {
-                    sb.AppendLine($"{userToken}\n{message.Content}{endToken}");
+                    sb.AppendLine($"{userToken}\n{systemMessage}{message.Content}{endToken}");
+                    systemMessage = "";
                 }
                 else if (message.AuthorRole == AuthorRole.System)
                 {
-                    sb.AppendLine($"{systemToken}\n{message.Content}{endToken}");
+                    // 模型不支持系统消息角色设定
+                    if (string.IsNullOrWhiteSpace(systemToken))
+                    {
+                        systemMessage = $"{message.Content} ";
+                    }
+                    else
+                    {
+                        sb.AppendLine($"{systemToken}\n{message.Content}{endToken}");
+                    }
                 }
                 else if (message.AuthorRole == AuthorRole.Assistant)
                 {
@@ -84,12 +114,14 @@ namespace LLamaWorker.Transform
     /// <summary>
     /// 处理结尾多余的输出
     /// </summary>
-    public class ChatMLTextStreamTransform
+    public class BaseTextStreamTransform
         : ITextStreamTransform
     {
-        private const string startToken = "<|im_start|>";
-        // 奇奇怪怪，总是在结尾有一个或多个问号
-        private const string keyToken = "???<|im_start|>";
+
+        /// <summary>
+        /// 开始标记
+        /// </summary>
+        protected virtual string startToken => "<|im_start|>";
 
         /// <summary>
         /// 转换文本流
@@ -106,22 +138,11 @@ namespace LLamaWorker.Transform
 
                 if (tmp.ToString().Contains(startToken))
                 {
-                    var result = tmp.ToString();
-                    var index = result.IndexOf(startToken);
-                    var startIndex = index;
-                    for (int i = 0; i < 2 && startIndex > 0 && result[startIndex - 1] == '?'; i++)
-                    {
-                        startIndex--;
-                    }
-                    result = result.Substring(0, startIndex);
-                    //File.AppendAllText("chatml.txt", result + "\n");
-                    yield return result;
+                    yield return tmp.ToString().Replace(startToken, "");
                     tmp.Clear();
                 }
-                else if (!keyToken.Contains(tmp.ToString()))
+                else if (!startToken.Contains(tmp.ToString()))
                 {
-                    //var result = tmp.ToString();
-                    //File.AppendAllText("chatml.txt", result + "\n");
                     yield return tmp.ToString();
                     tmp.Clear();
                 }
@@ -134,7 +155,7 @@ namespace LLamaWorker.Transform
         /// <returns></returns>
         public ITextStreamTransform Clone()
         {
-            return new ChatMLTextStreamTransform();
+            return new BaseTextStreamTransform();
         }
     }
 

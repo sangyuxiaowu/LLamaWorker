@@ -18,10 +18,11 @@ namespace LLamaWorker.Services
     public class LLmModelService : IDisposable
     {
         private readonly ILogger<LLmModelService> _logger;
-        private readonly LLmModelSettings _settings;
+        private readonly List<LLmModelSettings> _settings;
+        private LLmModelSettings _usedset;
         private readonly LLamaWeights _model;
         private readonly LLamaContext _context;
-        private readonly int _loadModelIndex = 0;
+        private int _loadModelIndex = 1;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
@@ -45,18 +46,26 @@ namespace LLamaWorker.Services
         public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
         {
             _logger = logger;
-            _settings = options.Value[_loadModelIndex];
+            _settings = options.Value;
 
-
-            if (string.IsNullOrWhiteSpace(_settings.ModelParams.ModelPath) ||
-                !File.Exists(_settings.ModelParams.ModelPath))
+            if (_settings.Count == 0)
             {
-                _logger.LogError("Model path is error: {path}.", _settings.ModelParams.ModelPath);
+                _logger.LogError("No model settings.");
+                throw new ArgumentException("No model settings.");
+            }
+
+            _usedset = _settings[_loadModelIndex];
+
+
+            if (string.IsNullOrWhiteSpace(_usedset.ModelParams.ModelPath) ||
+                !File.Exists(_usedset.ModelParams.ModelPath))
+            {
+                _logger.LogError("Model path is error: {path}.", _usedset.ModelParams.ModelPath);
                 throw new ArgumentException("Model path is error.");
             }
 
-            _model = LLamaWeights.LoadFromFile(_settings.ModelParams);
-            _context = new LLamaContext(_model, _settings.ModelParams);
+            _model = LLamaWeights.LoadFromFile(_usedset.ModelParams);
+            _context = new LLamaContext(_model, _usedset.ModelParams);
         }
 
         /// <summary>
@@ -66,6 +75,15 @@ namespace LLamaWorker.Services
         public IReadOnlyDictionary<string,string> GetModelInfo()
         {
             return _model.Metadata;
+        }
+
+        /// <summary>
+        /// 获取模型的配置列表
+        /// </summary>
+        /// <returns></returns>
+        public List<LLmModelSettings> GetModelSettings()
+        {
+            return _settings;
         }
 
         /// <summary>
@@ -95,9 +113,9 @@ namespace LLamaWorker.Services
             session.Executor.Context.NativeHandle.KvCacheClear();
 
             // 设置历史转换器和输出转换器
-            if (_settings.WithTransform?.HistoryTransform != null)
+            if (_usedset.WithTransform?.HistoryTransform != null)
             {
-                var type = Type.GetType(_settings.WithTransform.HistoryTransform);
+                var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
                 if (type != null)
                 {
                     var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
@@ -107,9 +125,9 @@ namespace LLamaWorker.Services
                     }
                 }
             }
-            if (_settings.WithTransform?.OutputTransform != null)
+            if (_usedset.WithTransform?.OutputTransform != null)
             {
-                var type = Type.GetType(_settings.WithTransform.OutputTransform);
+                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
                 if (type != null)
                 {
                     var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
@@ -182,9 +200,9 @@ namespace LLamaWorker.Services
             session.Executor.Context.NativeHandle.KvCacheClear();
 
             // 设置历史转换器和输出转换器
-            if (_settings.WithTransform?.HistoryTransform != null)
+            if (_usedset.WithTransform?.HistoryTransform != null)
             {
-                var type = Type.GetType(_settings.WithTransform.HistoryTransform);
+                var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
                 if (type != null)
                 {
                     var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
@@ -194,9 +212,9 @@ namespace LLamaWorker.Services
                     }
                 }
             }
-            if (_settings.WithTransform?.OutputTransform != null)
+            if (_usedset.WithTransform?.OutputTransform != null)
             {
-                var type = Type.GetType(_settings.WithTransform.OutputTransform);
+                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
                 if (type != null)
                 {
                     var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
@@ -318,10 +336,10 @@ namespace LLamaWorker.Services
             }
 
             // 添加系统提示
-            if(!string.IsNullOrWhiteSpace(_settings.SystemPrompt) && !isSystem)
+            if(!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && !isSystem)
             {
                 _logger.LogInformation("Add system prompt.");
-                history.Messages.Insert(0, new ChatHistory.Message(AuthorRole.System, _settings.SystemPrompt));
+                history.Messages.Insert(0, new ChatHistory.Message(AuthorRole.System, _usedset.SystemPrompt));
             }
 
             return history;
@@ -339,14 +357,14 @@ namespace LLamaWorker.Services
             {
                 stop.AddRange(request.stop);
             }
-            if(_settings.AntiPrompts?.Length>0)
+            if(_usedset.AntiPrompts?.Length>0)
             {
-                stop.AddRange(_settings.AntiPrompts);
+                stop.AddRange(_usedset.AntiPrompts);
             }
             if (stop.Count > 0)
             {
-                //去重，去空，并且至多3个
-                stop = stop.Distinct().Where(x => !string.IsNullOrWhiteSpace(x)).Take(3).ToList();
+                //去重，去空，并且至多4个
+                stop = stop.Distinct().Where(x => !string.IsNullOrWhiteSpace(x)).Take(4).ToList();
             }
 
             InferenceParams inferenceParams = new InferenceParams()
