@@ -20,9 +20,9 @@ namespace LLamaWorker.Services
         private readonly ILogger<LLmModelService> _logger;
         private readonly List<LLmModelSettings> _settings;
         private LLmModelSettings _usedset;
-        private readonly LLamaWeights _model;
-        private readonly LLamaContext _context;
-        private int _loadModelIndex = 1;
+        private LLamaWeights _model;
+        private LLamaContext _context;
+        private int _loadModelIndex = 0;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
@@ -38,34 +38,59 @@ namespace LLamaWorker.Services
 
 
         /// <summary>
-        /// LLmModelService
+        /// 初始化指定模型
         /// </summary>
-        /// <param name="options">模型配置列表</param>
-        /// <param name="logger">日志</param>
+        /// <param name="loadModelIndex">模型配置索引</param>
+        /// <param name="reLoad">是否重新加载，则会先释放资源</param>
         /// <exception cref="ArgumentException"></exception>
-        public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
+        public void InitModelIndex(int loadModelIndex, bool reLoad = false)
         {
-            _logger = logger;
-            _settings = options.Value;
-
             if (_settings.Count == 0)
             {
                 _logger.LogError("No model settings.");
                 throw new ArgumentException("No model settings.");
             }
 
-            _usedset = _settings[_loadModelIndex];
-
-
-            if (string.IsNullOrWhiteSpace(_usedset.ModelParams.ModelPath) ||
-                !File.Exists(_usedset.ModelParams.ModelPath))
+            if (loadModelIndex < 0 || loadModelIndex >= _settings.Count)
             {
-                _logger.LogError("Model path is error: {path}.", _usedset.ModelParams.ModelPath);
+                _logger.LogError("Invalid model index: {modelIndex}.", loadModelIndex);
+                throw new ArgumentException("Invalid model index.");
+            }
+
+            var usedset = _settings[loadModelIndex];
+
+            if (string.IsNullOrWhiteSpace(usedset.ModelParams.ModelPath) ||
+                               !File.Exists(usedset.ModelParams.ModelPath))
+            {
+                _logger.LogError("Model path is error: {path}.", usedset.ModelParams.ModelPath);
                 throw new ArgumentException("Model path is error.");
             }
 
-            _model = LLamaWeights.LoadFromFile(_usedset.ModelParams);
-            _context = new LLamaContext(_model, _usedset.ModelParams);
+            _loadModelIndex = loadModelIndex;
+            _usedset = usedset;
+
+            // 重新加载,释放资源
+            if (reLoad)
+            {
+                _context.Dispose();
+                _model.Dispose();
+            }
+
+            _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
+            _context = new LLamaContext(_model, usedset.ModelParams);
+        }
+
+
+        /// <summary>
+        /// LLmModelService
+        /// </summary>
+        /// <param name="options">模型配置列表</param>
+        /// <param name="logger">日志</param>
+        public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
+        {
+            _logger = logger;
+            _settings = options.Value;
+            InitModelIndex(_loadModelIndex);
         }
 
         /// <summary>
@@ -85,6 +110,17 @@ namespace LLamaWorker.Services
         {
             return _settings;
         }
+        
+        /// <summary>
+        /// 当前模型配置
+        /// </summary>
+        /// <returns></returns>
+        public LLmModelSettings GetCurrentModelSettings()
+        {
+            return _usedset;
+        }
+
+
 
         /// <summary>
         /// 聊天完成
@@ -403,5 +439,6 @@ namespace LLamaWorker.Services
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+        
     }
 }

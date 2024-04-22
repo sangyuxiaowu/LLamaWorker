@@ -9,10 +9,12 @@ namespace LLamaWorker.Controllers
     public class LLMController : ControllerBase
     {
         private readonly ILogger<LLMController> _logger;
+        private readonly LLmModelService _modelService;
 
-        public LLMController(ILogger<LLMController> logger)
+        public LLMController(ILogger<LLMController> logger, LLmModelService modelService)
         {
             _logger = logger;
+            _modelService = modelService;
         }
 
         /// <summary>
@@ -24,9 +26,9 @@ namespace LLamaWorker.Controllers
         /// </remarks>
         /// <returns></returns>
         [HttpGet("/models/info")]
-        public JsonResult GetModels([FromServices] LLmModelService service)
+        public JsonResult GetModels()
         {
-            var json = service.GetModelInfo();
+            var json = _modelService.GetModelInfo();
             return new JsonResult(json);
         }
 
@@ -34,12 +36,28 @@ namespace LLamaWorker.Controllers
         /// 返回已配置的模型信息
         /// </summary>
         [HttpGet("/models/config")]
-        public JsonResult GetConfigModels([FromServices] LLmModelService service)
+        public JsonResult GetConfigModels()
         {
-            var json = service.GetModelSettings();
+            var json = _modelService.GetModelSettings();
             return new JsonResult(json);
         }
 
-
+        /// <summary>
+        /// 切换到指定模型
+        /// </summary>
+        /// <param name="modelId">模型ID</param>
+        [HttpPut("/models/{modelId}/switch")]
+        public IActionResult SwitchModel(int modelId)
+        {
+            try
+            {
+                _modelService.InitModelIndex(modelId, true);
+            }
+            catch(Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            return Ok();
+        }
     }
 }
