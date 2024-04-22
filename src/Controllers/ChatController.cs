@@ -1,7 +1,6 @@
 using LLamaWorker.Models.OpenAI;
 using LLamaWorker.Services;
 using Microsoft.AspNetCore.Mvc;
-using static System.Net.WebRequestMethods;
 
 namespace LLamaWorker.Controllers
 {
@@ -10,11 +9,16 @@ namespace LLamaWorker.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]")]
+    [Produces("application/json")]
     public class ChatController : ControllerBase
     {
 
         private readonly ILogger<ChatController> _logger;
 
+        /// <summary>
+        /// 对话完成控制器
+        /// </summary>
+        /// <param name="logger">日志</param>
         public ChatController(ILogger<ChatController> logger)
         {
             _logger = logger;
@@ -28,9 +32,13 @@ namespace LLamaWorker.Controllers
         /// <remarks>
         /// 默认不开启流式，需要主动设置 stream:true
         /// </remarks>
-        /// <returns></returns>
+        /// <response code="200">模型对话结果</response>
+        /// <response code="400">错误信息</response>
         [HttpPost("/v1/chat/completions")]
         [HttpPost("/chat/completions")]
+        [Produces("text/event-stream")]
+        [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(ChatCompletionResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
         public async Task<IResult> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request, [FromServices] LLmModelService service)
         {
             try
