@@ -18,6 +18,11 @@ namespace LLamaWorker.Models
         public string? Description { get; set; }
 
         /// <summary>
+        /// 模型站点介绍
+        /// </summary>
+        public string? WebSite { get; set; }
+
+        /// <summary>
         /// 模型版本
         /// </summary>
         public string? Version { get; set; }
