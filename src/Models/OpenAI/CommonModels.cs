@@ -15,4 +15,16 @@
         /// </summary>
         public int total_tokens { get; set; } = 0;
     }
+
+    public class EmbeddingUsageInfo
+    {
+        /// <summary>
+        /// 提示令牌数
+        /// </summary>
+        public int prompt_tokens { get; set; } = 0;
+        /// <summary>
+        /// 总令牌数
+        /// </summary>
+        public int total_tokens { get; set; } = 0;
+    }
 }

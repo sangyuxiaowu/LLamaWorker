@@ -22,6 +22,7 @@ namespace LLamaWorker.Services
         private LLmModelSettings _usedset;
         private LLamaWeights _model;
         private LLamaContext _context;
+        private LLamaEmbedder _embedder;
         private int _loadModelIndex = 0;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -72,12 +73,17 @@ namespace LLamaWorker.Services
             // 重新加载,释放资源
             if (reLoad)
             {
+                _embedder?.Dispose();
                 _context.Dispose();
                 _model.Dispose();
             }
 
             _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
             _context = new LLamaContext(_model, usedset.ModelParams);
+            if (usedset.ModelParams.EmbeddingMode)
+            {
+                _embedder = new LLamaEmbedder(_model, usedset.ModelParams);
+            }
         }
 
 
@@ -120,7 +126,7 @@ namespace LLamaWorker.Services
             return _usedset;
         }
 
-
+        #region ChatCompletion
 
         /// <summary>
         /// 聊天完成
@@ -381,6 +387,34 @@ namespace LLamaWorker.Services
             return history;
         }
 
+        #endregion
+
+        #region Embedding
+
+        public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request)
+        {
+            
+            var embeddings = new List<float[]>();
+            foreach (var text in request.input)
+            {
+                var embedding = await _embedder.GetEmbeddings(text);
+                embeddings.Add(embedding);
+            }
+
+            return new EmbeddingResponse
+            {
+                data = embeddings.Select((x, index) => new EmbeddingObject
+                {
+                    embedding = x,
+                    index = index
+                }).ToArray(),
+                model = request.model
+            };
+        }
+
+        #endregion
+
+
         /// <summary>
         /// 生成推理参数
         /// </summary>
@@ -439,6 +473,7 @@ namespace LLamaWorker.Services
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
         
     }
 }

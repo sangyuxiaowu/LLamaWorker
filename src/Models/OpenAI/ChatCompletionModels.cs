@@ -106,7 +106,7 @@ namespace LLamaWorker.Models.OpenAI
         /// <summary>
         /// 对象类型，始终为chat.completion
         /// </summary>
-        public string _object = "chat.completion";
+        public string @object = "chat.completion";
 
         /// <summary>
         /// 创建聊天完成的Unix时间戳（以秒为单位）
@@ -167,7 +167,7 @@ public class ChatCompletionChunkResponse
     /// <summary>
     /// 对象类型，始终为chat.completion.chunk
     /// </summary>
-    public string _object = "chat.completion.chunk";
+    public string @object = "chat.completion.chunk";
 
     /// <summary>
     /// 创建聊天完成的Unix时间戳（以秒为单位）
