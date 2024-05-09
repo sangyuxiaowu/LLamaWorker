@@ -38,6 +38,14 @@ namespace LLamaWorker.Controllers
         {
             try
             {
+                if(request == null)
+                {
+                    return Results.BadRequest("Request is null");
+                }
+                if (!_modelService.IsSupportEmbedding)
+                {
+                    return Results.BadRequest("Model does not support embedding");
+                }
                 var response = await _modelService.CreateEmbeddingAsync(request);
                 return Results.Ok(response);
             }

@@ -391,6 +391,11 @@ namespace LLamaWorker.Services
 
         #region Embedding
 
+        /// <summary>
+        /// 创建嵌入
+        /// </summary>
+        /// <param name="request">请求内容</param>
+        /// <returns>词嵌入</returns>
         public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request)
         {
             
@@ -411,6 +416,11 @@ namespace LLamaWorker.Services
                 model = request.model
             };
         }
+
+        /// <summary>
+        /// 是否支持嵌入
+        /// </summary>
+        public bool IsSupportEmbedding => _usedset.ModelParams.EmbeddingMode;
 
         #endregion
 
