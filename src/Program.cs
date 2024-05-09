@@ -37,6 +37,9 @@ namespace LLamaWorker
                 );
             });
 
+            // HttpClient
+            builder.Services.AddHttpClient();
+
             var app = builder.Build();
 
             app.UseCors();
