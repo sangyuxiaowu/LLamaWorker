@@ -50,7 +50,7 @@ namespace LLamaWorker
 
             app.UseAuthorization();
             // 处理 stop 参数
-            app.UseMiddleware<StopConversionMiddleware>();
+            app.UseMiddleware<TypeConversionMiddleware>();
             app.MapControllers();
 
             app.Run();
