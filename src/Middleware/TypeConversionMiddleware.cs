@@ -28,30 +28,37 @@ namespace LLamaWorker.Middleware
 
                     var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
                     context.Request.Body.Position = 0;
-
-                    using (JsonDocument doc = JsonDocument.Parse(body))
+                    try
                     {
-                        var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body);
-
-                        if (data != null)
+                        // Json 可能出现异常
+                        using (JsonDocument doc = JsonDocument.Parse(body))
                         {
-                            if (data.TryGetValue("stop", out var stop) && stop.ValueKind == JsonValueKind.String)
-                            {
-                                data["stop"] = JsonSerializer.Deserialize<JsonElement>(
-                                    JsonSerializer.Serialize(new string[] { stop.ToString() })
-                                );
-                            }
+                            var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(body);
 
-                            if (data.TryGetValue("input", out var input) && input.ValueKind == JsonValueKind.String)
+                            if (data != null)
                             {
-                                data["input"] = JsonSerializer.Deserialize<JsonElement>(
-                                    JsonSerializer.Serialize(new string[] { input.ToString() })
-                                );
-                            }
+                                if (data.TryGetValue("stop", out var stop) && stop.ValueKind == JsonValueKind.String)
+                                {
+                                    data["stop"] = JsonSerializer.Deserialize<JsonElement>(
+                                        JsonSerializer.Serialize(new string[] { stop.ToString() })
+                                    );
+                                }
 
-                            var newBody = JsonSerializer.Serialize(data);
-                            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(newBody));
+                                if (data.TryGetValue("input", out var input) && input.ValueKind == JsonValueKind.String)
+                                {
+                                    data["input"] = JsonSerializer.Deserialize<JsonElement>(
+                                        JsonSerializer.Serialize(new string[] { input.ToString() })
+                                    );
+                                }
+
+                                var newBody = JsonSerializer.Serialize(data);
+                                context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(newBody));
+                            }
                         }
+                    }
+                    catch
+                    {
+                        // 不处理异常，交给验证处理
                     }
                 }
             }
