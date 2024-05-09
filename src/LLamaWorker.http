@@ -1,6 +1,52 @@
 @LLamaWorker_HostAddress = http://localhost:5114
 
-GET {{LLamaWorker_HostAddress}}/weatherforecast/
-Accept: application/json
 
 ###
+# 测试嵌入请求
+POST {{LLamaWorker_HostAddress}}/v1/embeddings
+Content-Type: application/json
+
+{
+  "input": "The food was delicious and the waiter...",
+  "model": "text-embedding-ada-002",
+  "encoding_format": "float"
+}
+
+###
+# 测试聊天请求
+POST {{LLamaWorker_HostAddress}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Who won the world series in 2020?"
+    }
+  ]
+}
+
+###
+# 测试问答请求,流式请求
+POST {{LLamaWorker_HostAddress}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gpt-3.5-turbo",
+  "stream": true,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Who won the world series in 2020?"
+    }
+  ]
+}
