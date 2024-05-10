@@ -384,6 +384,12 @@ namespace LLamaWorker.Services
                 history.Messages.Insert(0, new ChatHistory.Message(AuthorRole.System, _usedset.SystemPrompt));
             }
 
+            // LLamaSharp 限制最后一个消息为用户消息
+            if (history.Messages.Count > 0 && history.Messages.LastOrDefault()!.AuthorRole != AuthorRole.User)
+            {
+                history.Messages.Add(new ChatHistory.Message(AuthorRole.User, " "));
+            }
+
             return history;
         }
 
