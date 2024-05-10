@@ -34,15 +34,6 @@ namespace LLamaWorker.Controllers
             _client = client;
         }
 
-
-        [HttpGet("/models/embeddings")]
-        public string GetEmbeddingModels()
-        {
-            var url = _configuration["EmbedingForward"];
-            return url;
-        }
-
-
         /// <summary>
         /// 创建嵌入
         /// </summary>

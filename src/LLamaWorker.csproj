@@ -8,15 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="LLamaSharp" Version="0.11.2" />-->
+    <PackageReference Include="LLamaSharp" Version="0.11.2" />
     <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.11.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="LLamaSharp">
-      <HintPath>..\..\LLamaSharp-master\LLama\bin\Debug\net8.0\LLamaSharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
