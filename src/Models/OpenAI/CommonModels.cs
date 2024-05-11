@@ -1,5 +1,8 @@
 ﻿namespace LLamaWorker.Models.OpenAI
 {
+    /// <summary>
+    /// 推理完成令牌信息
+    /// </summary>
     public class UsageInfo
     {
         /// <summary>
@@ -16,6 +19,9 @@
         public int total_tokens { get; set; } = 0;
     }
 
+    /// <summary>
+    /// Embedding 完成令牌信息
+    /// </summary>
     public class EmbeddingUsageInfo
     {
         /// <summary>
