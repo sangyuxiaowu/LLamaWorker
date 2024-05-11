@@ -97,6 +97,10 @@ namespace LLamaWorker.Services
             _logger = logger;
             _settings = options.Value;
             InitModelIndex(_loadModelIndex);
+            if (_usedset == null || _model == null || _context == null || _embedder == null)
+            {
+                throw new InvalidOperationException("Failed to initialize the model.");
+            }
         }
 
         /// <summary>

@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace LLamaWorker.Middleware
 {
+    /// <summary>
+    /// 类型转换中间件
+    /// </summary>
     public class TypeConversionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -18,6 +21,11 @@ namespace LLamaWorker.Middleware
             _next = next;
         }
 
+        /// <summary>
+        /// InvokeAsync
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
             if (context.Request.Method == "POST")

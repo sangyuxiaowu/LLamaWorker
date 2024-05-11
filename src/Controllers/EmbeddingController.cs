@@ -26,6 +26,8 @@ namespace LLamaWorker.Controllers
         /// </summary>
         /// <param name="logger">日志</param>
         /// <param name="modelService">llama 服务</param>
+        /// <param name="configuration">配置服务</param>
+        /// <param name="client">HttpClient</param>
         public EmbeddingController(ILogger<EmbeddingController> logger, LLmModelService modelService, IConfiguration configuration, HttpClient client)
         {
             _logger = logger;
