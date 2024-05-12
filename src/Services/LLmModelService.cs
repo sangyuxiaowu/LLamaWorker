@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using LLama.Abstractions;
+using System.Reflection;
 
 namespace LLamaWorker.Services
 {
@@ -23,7 +24,7 @@ namespace LLamaWorker.Services
         private LLamaWeights _model;
         private LLamaContext _context;
         private LLamaEmbedder? _embedder;
-        private int _loadModelIndex = 0;
+        private int _loadModelIndex = 5;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
@@ -418,6 +419,124 @@ namespace LLamaWorker.Services
 
         #endregion
 
+        #region Completion
+
+        /// <summary>
+        /// 提示完成
+        /// </summary>
+        public async Task<CompletionResponse> CreateCompletionAsync(CompletionRequest request)
+        {
+            if(string.IsNullOrWhiteSpace(request.prompt))
+            {
+                _logger.LogWarning("No prompt.");
+                return new CompletionResponse();
+            }
+            var genParams = GetInferenceParams(request);
+            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var result = "";
+            await foreach (var output in ex.InferAsync(request.prompt, genParams))
+            {
+                _logger.LogDebug("Message: {output}", output);
+                result += output;
+            }
+            var tokenizedInput = _context.Tokenize(request.prompt);
+            var tokenizedOutput = _context.Tokenize(result);
+            return new CompletionResponse
+            {
+                id = $"cmpl-{Guid.NewGuid()}",
+                model = request.model,
+                created = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                choices = new[]
+                {
+                    new CompletionResponseChoice
+                    {
+                        index = 0,
+                        text = result
+                    }
+                },
+                usage = new UsageInfo
+                {
+                    prompt_tokens = tokenizedInput.Length,
+                    completion_tokens = tokenizedOutput.Length,
+                    total_tokens = tokenizedInput.Length + tokenizedOutput.Length
+                }
+            };
+        }
+
+        /// <summary>
+        /// 流式生成-提示完成
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async IAsyncEnumerable<string> CreateCompletionStreamAsync(CompletionRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.prompt))
+            {
+                _logger.LogWarning("No prompt.");
+                yield break;
+            }
+            var genParams = GetInferenceParams(request);
+            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var id = $"cmpl-{Guid.NewGuid()}";
+            var created = DateTimeOffset.Now.ToUnixTimeSeconds();
+            int index = 0;
+            var chunk = JsonSerializer.Serialize(new CompletionResponse
+            {
+                id = id,
+                created = created,
+                model = request.model,
+                choices = new[]
+                {
+                    new CompletionResponseChoice
+                    {
+                        index = index,
+                        text = "",
+                        finish_reason = null
+                    }
+                }
+            }, _jsonSerializerOptions);
+            yield return $"data: {chunk}\n\n";
+            await foreach (var output in ex.InferAsync(request.prompt, genParams))
+            {
+                _logger.LogDebug("Message: {output}", output);
+                chunk = JsonSerializer.Serialize(new CompletionResponse
+                {
+                    id = id,
+                    created = created,
+                    model = request.model,
+                    choices = new[]
+                    {
+                        new CompletionResponseChoice
+                        {
+                            index = ++index,
+                            text = output,
+                            finish_reason = null
+                        }
+                    }
+                }, _jsonSerializerOptions);
+                yield return $"data: {chunk}\n\n";
+            }
+            chunk = JsonSerializer.Serialize(new CompletionResponse
+            {
+                id = id,
+                created = created,
+                model = request.model,
+                choices = new[]
+                {
+                    new CompletionResponseChoice
+                    {
+                        index = ++index,
+                        text = null,
+                        finish_reason = "stop"
+                    }
+                }
+            }, _jsonSerializerOptions);
+            yield return $"data: {chunk}\n\n";
+            yield return "data: [DONE]\n\n";
+            yield break;
+        }
+
+        #endregion
 
 
         /// <summary>
@@ -425,7 +544,7 @@ namespace LLamaWorker.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        private InferenceParams GetInferenceParams(ChatCompletionRequest request)
+        private InferenceParams GetInferenceParams(BaseCompletionRequest request)
         {
             var stop = new List<string>();
             if (request.stop != null)
