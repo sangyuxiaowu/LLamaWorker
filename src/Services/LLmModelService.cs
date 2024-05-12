@@ -22,7 +22,7 @@ namespace LLamaWorker.Services
         private LLmModelSettings _usedset;
         private LLamaWeights _model;
         private LLamaContext _context;
-        private LLamaEmbedder _embedder;
+        private LLamaEmbedder? _embedder;
         private int _loadModelIndex = 0;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -97,7 +97,7 @@ namespace LLamaWorker.Services
             _logger = logger;
             _settings = options.Value;
             InitModelIndex(_loadModelIndex);
-            if (_usedset == null || _model == null || _context == null || _embedder == null)
+            if (_usedset == null || _model == null || _context == null)
             {
                 throw new InvalidOperationException("Failed to initialize the model.");
             }
@@ -153,36 +153,7 @@ namespace LLamaWorker.Services
             // 去除最后一条消息
             chatHistory.Messages.RemoveAt(chatHistory.Messages.Count - 1);
 
-            var executor = new InteractiveExecutor(_context);
-            ChatSession session = new(executor, chatHistory);
-            // 清除缓存
-            session.Executor.Context.NativeHandle.KvCacheClear();
-
-            // 设置历史转换器和输出转换器
-            if (_usedset.WithTransform?.HistoryTransform != null)
-            {
-                var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
-                if (type != null)
-                {
-                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
-                    if (historyTransform != null)
-                    {
-                        session.WithHistoryTransform(historyTransform);
-                    }
-                }
-            }
-            if (_usedset.WithTransform?.OutputTransform != null)
-            {
-                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
-                if (type != null)
-                {
-                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
-                    if (outputTransform != null)
-                    {
-                        session.WithOutputTransform(outputTransform);
-                    }
-                }
-            }
+            var session = GetChatSession(chatHistory);
 
             var result = "";
             await foreach (var output in session.ChatAsync(lastMessage, genParams))
@@ -240,36 +211,7 @@ namespace LLamaWorker.Services
             // 去除最后一条消息
             chatHistory.Messages.RemoveAt(chatHistory.Messages.Count - 1);
 
-            var executor = new InteractiveExecutor(_context);
-            ChatSession session = new(executor, chatHistory);
-            // 清除缓存
-            session.Executor.Context.NativeHandle.KvCacheClear();
-
-            // 设置历史转换器和输出转换器
-            if (_usedset.WithTransform?.HistoryTransform != null)
-            {
-                var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
-                if (type != null)
-                {
-                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
-                    if (historyTransform != null)
-                    {
-                        session.WithHistoryTransform(historyTransform);
-                    }
-                }
-            }
-            if (_usedset.WithTransform?.OutputTransform != null)
-            {
-                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
-                if (type != null)
-                {
-                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
-                    if (outputTransform != null)
-                    {
-                        session.WithOutputTransform(outputTransform);
-                    }
-                }
-            }
+            var session = GetChatSession(chatHistory);
 
             var id = $"chatcmpl-{Guid.NewGuid()}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -342,6 +284,48 @@ namespace LLamaWorker.Services
             yield return $"data: {chunk}\n\n";
             yield return "data: [DONE]\n\n";
             yield break;
+        }
+
+
+        /// <summary>
+        /// 生成并配置对话会话
+        /// </summary>
+        /// <param name="chatHistory">历史对话</param>
+        /// <returns></returns>
+        private ChatSession GetChatSession(ChatHistory chatHistory)
+        {
+            var executor = new InteractiveExecutor(_context);
+            ChatSession session = new(executor, chatHistory);
+            // 清除缓存
+            session.Executor.Context.NativeHandle.KvCacheClear();
+
+            // 设置历史转换器和输出转换器
+            if (_usedset.WithTransform?.HistoryTransform != null)
+            {
+                var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
+                if (type != null)
+                {
+                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
+                    if (historyTransform != null)
+                    {
+                        session.WithHistoryTransform(historyTransform);
+                    }
+                }
+            }
+            if (_usedset.WithTransform?.OutputTransform != null)
+            {
+                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
+                if (type != null)
+                {
+                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
+                    if (outputTransform != null)
+                    {
+                        session.WithOutputTransform(outputTransform);
+                    }
+                }
+            }
+
+            return session;
         }
 
 
@@ -433,6 +417,7 @@ namespace LLamaWorker.Services
         public bool IsSupportEmbedding => _usedset.ModelParams.EmbeddingMode;
 
         #endregion
+
 
 
         /// <summary>
