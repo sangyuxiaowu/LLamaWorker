@@ -24,7 +24,10 @@ namespace LLamaWorker.Services
         private LLamaWeights _model;
         private LLamaContext _context;
         private LLamaEmbedder? _embedder;
-        private int _loadModelIndex = 5;
+        // 模型是否已加载
+        private bool isLoaded = false;
+        // 已加载模型ID，-1表示未加载
+        private int _loadModelIndex = -1;
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
@@ -42,15 +45,22 @@ namespace LLamaWorker.Services
         /// <summary>
         /// 初始化指定模型
         /// </summary>
-        /// <param name="loadModelIndex">模型配置索引</param>
-        /// <param name="reLoad">是否重新加载，则会先释放资源</param>
-        /// <exception cref="ArgumentException"></exception>
-        public void InitModelIndex(int loadModelIndex, bool reLoad = false)
+        public void InitModelIndex()
         {
+
             if (_settings.Count == 0)
             {
                 _logger.LogError("No model settings.");
                 throw new ArgumentException("No model settings.");
+            }
+
+            int loadModelIndex = GlobalSettings.CurrentModelIndex;
+
+            // 模型已加载
+            if (_loadModelIndex == loadModelIndex)
+            {
+                _logger.LogInformation("Model has been loaded.");
+                return;
             }
 
             if (loadModelIndex < 0 || loadModelIndex >= _settings.Count)
@@ -68,16 +78,16 @@ namespace LLamaWorker.Services
                 throw new ArgumentException("Model path is error.");
             }
 
-            _loadModelIndex = loadModelIndex;
-            _usedset = usedset;
-
             // 重新加载,释放资源
-            if (reLoad)
+            if (isLoaded)
             {
                 _embedder?.Dispose();
                 _context.Dispose();
                 _model.Dispose();
             }
+
+            isLoaded = false;
+            _loadModelIndex = -1;
 
             _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
             _context = new LLamaContext(_model, usedset.ModelParams);
@@ -85,6 +95,10 @@ namespace LLamaWorker.Services
             {
                 _embedder = new LLamaEmbedder(_model, usedset.ModelParams);
             }
+
+            _usedset = usedset;
+            _loadModelIndex = loadModelIndex;
+            isLoaded = true;
         }
 
 
@@ -97,7 +111,7 @@ namespace LLamaWorker.Services
         {
             _logger = logger;
             _settings = options.Value;
-            InitModelIndex(_loadModelIndex);
+            InitModelIndex();
             if (_usedset == null || _model == null || _context == null)
             {
                 throw new InvalidOperationException("Failed to initialize the model.");
@@ -111,24 +125,6 @@ namespace LLamaWorker.Services
         public IReadOnlyDictionary<string,string> GetModelInfo()
         {
             return _model.Metadata;
-        }
-
-        /// <summary>
-        /// 获取模型的配置列表
-        /// </summary>
-        /// <returns></returns>
-        public List<LLmModelSettings> GetModelSettings()
-        {
-            return _settings;
-        }
-        
-        /// <summary>
-        /// 当前模型配置
-        /// </summary>
-        /// <returns></returns>
-        public LLmModelSettings GetCurrentModelSettings()
-        {
-            return _usedset;
         }
 
         #region ChatCompletion

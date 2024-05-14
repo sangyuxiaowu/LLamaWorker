@@ -1,4 +1,5 @@
-﻿using LLamaWorker.Services;
+﻿using LLamaWorker.Models;
+using LLamaWorker.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,12 +10,12 @@ namespace LLamaWorker.Controllers
     public class LLMController : ControllerBase
     {
         private readonly ILogger<LLMController> _logger;
-        private readonly LLmModelService _modelService;
+        private readonly List<LLmModelSettings> _settings;
 
-        public LLMController(ILogger<LLMController> logger, LLmModelService modelService)
+        public LLMController(ILogger<LLMController> logger, IConfiguration configuration)
         {
             _logger = logger;
-            _modelService = modelService;
+            _settings = configuration.GetSection(nameof(LLmModelSettings)).Get<List<LLmModelSettings>>();
         }
 
         /// <summary>
@@ -26,9 +27,9 @@ namespace LLamaWorker.Controllers
         /// </remarks>
         /// <returns></returns>
         [HttpGet("/models/info")]
-        public JsonResult GetModels()
+        public JsonResult GetModels([FromServices] LLmModelService service)
         {
-            var json = _modelService.GetModelInfo();
+            var json = service.GetModelInfo();
             return new JsonResult(json);
         }
 
@@ -36,28 +37,51 @@ namespace LLamaWorker.Controllers
         /// 返回已配置的模型信息
         /// </summary>
         [HttpGet("/models/config")]
-        public JsonResult GetConfigModels()
+        public ConfigModels GetConfigModels()
         {
-            var json = _modelService.GetModelSettings();
-            return new JsonResult(json);
+            return new ConfigModels { 
+                Models = _settings,
+                Current = GlobalSettings.CurrentModelIndex
+            };
         }
 
         /// <summary>
         /// 切换到指定模型
         /// </summary>
         /// <param name="modelId">模型ID</param>
+        /// <param name="service"></param>
         [HttpPut("/models/{modelId}/switch")]
-        public IActionResult SwitchModel(int modelId)
+        public IActionResult SwitchModel(int modelId, [FromServices] LLmModelService service)
         {
+            int index = GlobalSettings.CurrentModelIndex;
             try
             {
-                _modelService.InitModelIndex(modelId, true);
+                GlobalSettings.CurrentModelIndex = modelId;
+                // 加载模型
+                service.InitModelIndex();
             }
             catch(Exception e)
             {
+                GlobalSettings.CurrentModelIndex = index;
                 return BadRequest(e.Message);
             }
             return Ok();
         }
+    }
+
+    /// <summary>
+    /// 模型配置信息
+    /// </summary>
+    public class ConfigModels
+    {
+        /// <summary>
+        /// 当前使用的模型
+        /// </summary>
+        public int Current { get; set; }
+
+        /// <summary>
+        /// 模型列表
+        /// </summary>
+        public List<LLmModelSettings>? Models { get; set; }
     }
 }
