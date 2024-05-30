@@ -91,7 +91,7 @@ namespace LLamaWorker.Services
 
             _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
             _context = new LLamaContext(_model, usedset.ModelParams);
-            if (usedset.ModelParams.EmbeddingMode)
+            if (usedset.ModelParams.Embeddings)
             {
                 _embedder = new LLamaEmbedder(_model, usedset.ModelParams);
             }
@@ -411,7 +411,7 @@ namespace LLamaWorker.Services
         /// <summary>
         /// 是否支持嵌入
         /// </summary>
-        public bool IsSupportEmbedding => _usedset.ModelParams.EmbeddingMode;
+        public bool IsSupportEmbedding => _usedset.ModelParams.Embeddings;
 
         #endregion
 
