@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker", "src/LLamaWorker.csproj", "{31159759-ABDF-4FC9-B6B6-6BE71905F101}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker", "src\LLamaWorker.csproj", "{31159759-ABDF-4FC9-B6B6-6BE71905F101}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker_Cuad12", "src\LLamaWorker_Cuad12.csproj", "{978413C1-A8C3-47AB-AB2A-1E38E208699B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker_Cuad11", "src\LLamaWorker_Cuad11.csproj", "{50BD1C8C-30A4-442A-B650-27562EE98169}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{31159759-ABDF-4FC9-B6B6-6BE71905F101}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31159759-ABDF-4FC9-B6B6-6BE71905F101}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31159759-ABDF-4FC9-B6B6-6BE71905F101}.Release|Any CPU.Build.0 = Release|Any CPU
+		{978413C1-A8C3-47AB-AB2A-1E38E208699B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{978413C1-A8C3-47AB-AB2A-1E38E208699B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{978413C1-A8C3-47AB-AB2A-1E38E208699B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{978413C1-A8C3-47AB-AB2A-1E38E208699B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50BD1C8C-30A4-442A-B650-27562EE98169}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50BD1C8C-30A4-442A-B650-27562EE98169}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50BD1C8C-30A4-442A-B650-27562EE98169}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50BD1C8C-30A4-442A-B650-27562EE98169}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
