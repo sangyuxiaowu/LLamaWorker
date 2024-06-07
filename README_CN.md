@@ -20,18 +20,18 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp)
    ```
 2. 进入项目目录
    ```bash
-   cd LLamaWorker/src
+   cd LLamaWorker
    ```
 3. 根据您的需求选择项目文件。项目提供了三个版本的项目文件：
-   - `LLamaWorker.csproj`：适用于 CPU 环境。
-   - `LLamaWorker_Cuad11.csproj`：适用于搭载 CUDA 11 的 GPU 环境。
-   - `LLamaWorker_Cuad12.csproj`：适用于搭载 CUDA 12 的 GPU 环境。
+   - `LLamaWorker`：适用于 CPU 环境。
+   - `LLamaWorker_Cuad11`：适用于搭载 CUDA 11 的 GPU 环境。
+   - `LLamaWorker_Cuad12`：适用于搭载 CUDA 12 的 GPU 环境。
    
    选择适合您环境的项目文件进行下一步。
    
 4. 安装依赖项
    ```bash
-   dotnet restore LLamaWorker.csproj
+   dotnet restore LLamaWorker\LLamaWorker.csproj
    ```
    如果您使用的是 CUDA 版本，请替换项目文件名。
    
@@ -39,7 +39,7 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp)
    
 6. 启动服务器
    ```bash
-   dotnet run --project LLamaWorker.csproj
+   dotnet run --project LLamaWorker\LLamaWorker.csproj
    ```
    如果您使用的是 CUDA 版本，请替换项目文件名。
 

@@ -20,18 +20,18 @@ English | [中文](README_CN.md)
    ```
 2. Enter the project directory
    ```bash
-   cd LLamaWorker/src
+   cd LLamaWorker
    ```
 3. Choose the project file according to your needs. The project provides three versions of the project files:
-   - `LLamaWorker.csproj`: For CPU environments.
-   - `LLamaWorker_Cuad11.csproj`: For GPU environments with CUDA 11.
-   - `LLamaWorker_Cuad12.csproj`: For GPU environments with CUDA 12.
+   - `LLamaWorker`: For CPU environments.
+   - `LLamaWorker_Cuad11`: For GPU environments with CUDA 11.
+   - `LLamaWorker_Cuad12`: For GPU environments with CUDA 12.
    
    Select the project file that suits your environment for the next step.
    
 4. Install dependencies
    ```bash
-   dotnet restore LLamaWorker.csproj
+   dotnet restore LLamaWorker\LLamaWorker.csproj
    ```
    If you are using a CUDA version, replace the project file name accordingly.
    
@@ -39,7 +39,7 @@ English | [中文](README_CN.md)
    
 6. Start the server
    ```bash
-   dotnet run --project LLamaWorker.csproj
+   dotnet run --project LLamaWorker\LLamaWorker.csproj
    ```
    If you are using a CUDA version, replace the project file name accordingly.
 
