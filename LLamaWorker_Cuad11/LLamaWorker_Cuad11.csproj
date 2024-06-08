@@ -17,17 +17,6 @@
 
 	<ItemGroup>
 		<Compile Include="..\src\**\*.cs" />
-		<Compile Include="..\src\*.http" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Remove="..\src\LLamaWorker.http" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="..\src\appsettings.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 	<ItemGroup>
