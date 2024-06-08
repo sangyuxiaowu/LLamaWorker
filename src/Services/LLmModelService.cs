@@ -163,7 +163,7 @@ namespace LLamaWorker.Services
             var tokenizedOutput = _context.Tokenize(result);
 
             return new ChatCompletionResponse { 
-                id = $"chatcmpl-{Guid.NewGuid()}",
+                id = $"chatcmpl-{Guid.NewGuid():N}",
                 model = request.model,
                 created = DateTimeOffset.Now.ToUnixTimeSeconds(),
                 choices =
@@ -210,7 +210,7 @@ namespace LLamaWorker.Services
 
             var session = GetChatSession(chatHistory);
 
-            var id = $"chatcmpl-{Guid.NewGuid()}";
+            var id = $"chatcmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
 
             int index = 0;
@@ -439,7 +439,7 @@ namespace LLamaWorker.Services
             var tokenizedOutput = _context.Tokenize(result);
             return new CompletionResponse
             {
-                id = $"cmpl-{Guid.NewGuid()}",
+                id = $"cmpl-{Guid.NewGuid():N}",
                 model = request.model,
                 created = DateTimeOffset.Now.ToUnixTimeSeconds(),
                 choices = new[]
@@ -473,7 +473,7 @@ namespace LLamaWorker.Services
             }
             var genParams = GetInferenceParams(request);
             var ex = new StatelessExecutor(_model, _usedset.ModelParams);
-            var id = $"cmpl-{Guid.NewGuid()}";
+            var id = $"cmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
             int index = 0;
             var chunk = JsonSerializer.Serialize(new CompletionResponse
