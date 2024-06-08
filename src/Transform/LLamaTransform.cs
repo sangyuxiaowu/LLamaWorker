@@ -16,7 +16,7 @@ namespace LLamaWorker.Transform
         protected override string assistantToken => "<|start_header_id|>assistant<|end_header_id|>\n";
 
         /// <inheritdoc/>
-        protected override string systemToken => "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n";
+        protected override string systemToken => "<|start_header_id|>system<|end_header_id|>\n";
 
         /// <inheritdoc/>
         protected override string endToken => "<|eot_id|>";
