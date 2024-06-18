@@ -80,4 +80,20 @@ namespace LLamaWorker.Models
         /// </summary>
         public string? OutputTransform { get; set; }
     }
+
+    /// <summary>
+    /// 模型配置信息
+    /// </summary>
+    public class ConfigModels
+    {
+        /// <summary>
+        /// 当前使用的模型
+        /// </summary>
+        public int Current { get; set; }
+
+        /// <summary>
+        /// 模型列表
+        /// </summary>
+        public List<LLmModelSettings>? Models { get; set; }
+    }
 }

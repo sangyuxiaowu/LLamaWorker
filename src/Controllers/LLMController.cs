@@ -1,6 +1,5 @@
 ﻿using LLamaWorker.Models;
 using LLamaWorker.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LLamaWorker.Controllers
@@ -67,21 +66,5 @@ namespace LLamaWorker.Controllers
             }
             return Ok();
         }
-    }
-
-    /// <summary>
-    /// 模型配置信息
-    /// </summary>
-    public class ConfigModels
-    {
-        /// <summary>
-        /// 当前使用的模型
-        /// </summary>
-        public int Current { get; set; }
-
-        /// <summary>
-        /// 模型列表
-        /// </summary>
-        public List<LLmModelSettings>? Models { get; set; }
     }
 }
