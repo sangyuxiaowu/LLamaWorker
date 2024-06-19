@@ -11,7 +11,8 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="..\src\Models\LLmModelSettings.cs" />
+		<Compile Include="..\src\Models\*.cs" />
+		<Compile Include="..\src\Models\*\*.cs" />
 	</ItemGroup>
 
 </Project>
