@@ -5,6 +5,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<StartWorkingDirectory>..\src</StartWorkingDirectory>
+		<AssemblyName Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">LLamaWorker</AssemblyName>
+		<RootNamespace Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">LLamaWorker</RootNamespace>
 	</PropertyGroup>
 
   <ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">
