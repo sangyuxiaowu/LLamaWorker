@@ -1,0 +1,22 @@
+<Project>
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<AssemblyName>LLamaWorker</AssemblyName>
+		<RootNamespace>LLamaWorker</RootNamespace>
+	</PropertyGroup>
+
+  <ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">
+	<PackageReference Include="LLamaSharp" Version="0.13.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.139" PrivateAssets="all" />
+	<Compile Include="..\src\**\*.cs" />
+	<None Include="..\src\LLamaWorker.http" />
+	<Content Include="..\src\appsettings*.json">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</Content>
+  </ItemGroup>
+</Project>
