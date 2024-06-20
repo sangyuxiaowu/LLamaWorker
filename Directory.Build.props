@@ -4,6 +4,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<StartWorkingDirectory>..\src</StartWorkingDirectory>
 	</PropertyGroup>
 
   <ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">
