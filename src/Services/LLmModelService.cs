@@ -1,12 +1,12 @@
 ﻿using LLama;
-using LLama.Batched;
+using LLama.Abstractions;
 using LLama.Common;
 using LLamaWorker.Models;
 using LLamaWorker.Models.OpenAI;
 using Microsoft.Extensions.Options;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using LLama.Abstractions;
 using System.Reflection;
@@ -53,10 +53,11 @@ namespace LLamaWorker.Services
                 throw new ArgumentException("No model settings.");
             }
 
+            // 从配置中获取模型索引
             int loadModelIndex = GlobalSettings.CurrentModelIndex;
 
-            // 模型已加载
-            if (_loadModelIndex == loadModelIndex)
+            // 检查模型是否已加载，且索引相同
+            if (GlobalSettings.IsModelLoaded && _loadModelIndex == loadModelIndex)
             {
                 _logger.LogInformation("Model has been loaded.");
                 return;
@@ -77,16 +78,8 @@ namespace LLamaWorker.Services
                 throw new ArgumentException("Model path is error.");
             }
 
-            // 重新加载,释放资源
-            if (GlobalSettings.IsModelLoaded)
-            {
-                _embedder?.Dispose();
-                _context.Dispose();
-                _model.Dispose();
-            }
-
-            GlobalSettings.IsModelLoaded = false;
-            _loadModelIndex = -1;
+            // 适用于模型切换，先释放模型资源
+            DisposeModel();
 
             _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
             _context = new LLamaContext(_model, usedset.ModelParams);
@@ -568,6 +561,23 @@ namespace LLamaWorker.Services
             return inferenceParams;
         }
 
+
+        /// <summary>
+        /// 主动释放模型资源
+        /// </summary>
+        private void DisposeModel()
+        {
+            if (GlobalSettings.IsModelLoaded)
+            {
+                _embedder?.Dispose();
+                _context.Dispose();
+                _model.Dispose();
+                GlobalSettings.IsModelLoaded = false;
+                _loadModelIndex = -1;
+            }
+        }
+
+
         /// <summary>
         /// 释放非托管资源
         /// </summary>
@@ -578,7 +588,7 @@ namespace LLamaWorker.Services
             {
                 if (disposing)
                 {
-                    _model.Dispose();
+                    DisposeModel();
                 }
                 _disposedValue = true;
             }
@@ -589,7 +599,7 @@ namespace LLamaWorker.Services
         /// </summary>
         public void Dispose()
         {
-            Dispose(disposing: true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
