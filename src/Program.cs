@@ -26,6 +26,8 @@ namespace LLamaWorker
             builder.Services.Configure<List<LLmModelSettings>>(
                 builder.Configuration.GetSection(nameof(LLmModelSettings))
             );
+            // ◊‘∂Ø Õ∑≈≈‰÷√
+            GlobalSettings.AutoReleaseTime = builder.Configuration.GetValue<int>("AutoReleaseTime");
 
             builder.Services.AddSingleton<LLmModelService>();
 

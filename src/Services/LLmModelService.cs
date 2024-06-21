@@ -8,8 +8,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
-using LLama.Abstractions;
-using System.Reflection;
+using Timer = System.Timers.Timer;
 
 namespace LLamaWorker.Services
 {
@@ -28,18 +27,18 @@ namespace LLamaWorker.Services
         // 已加载模型ID，-1表示未加载
         private int _loadModelIndex = -1;
 
+        // 资源释放计时器
+        private Timer _idleTimer;
+        private DateTime _lastUsedTime;
+        private readonly TimeSpan _idleThreshold;
+
+
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = false,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-
-        /// <summary>
-        /// 是否已释放资源
-        /// </summary>
-        private bool _disposedValue = false;
-
 
         /// <summary>
         /// 初始化指定模型
@@ -93,7 +92,7 @@ namespace LLamaWorker.Services
             GlobalSettings.IsModelLoaded = true;
         }
 
-
+ 
         /// <summary>
         /// LLmModelService
         /// </summary>
@@ -107,6 +106,17 @@ namespace LLamaWorker.Services
             if (_usedset == null || _model == null || _context == null)
             {
                 throw new InvalidOperationException("Failed to initialize the model.");
+            }
+
+            // 定时器
+            if (GlobalSettings.AutoReleaseTime > 0)
+            {
+                _logger.LogInformation("Auto release time: {time} min.", GlobalSettings.AutoReleaseTime);
+                _idleThreshold = TimeSpan.FromMinutes(GlobalSettings.AutoReleaseTime);
+                _lastUsedTime = DateTime.Now;
+                _idleTimer = new Timer(60000); // 每分钟检查一次
+                _idleTimer.Elapsed += CheckIdle;
+                _idleTimer.Start();
             }
         }
 
@@ -562,6 +572,40 @@ namespace LLamaWorker.Services
         }
 
 
+        #region Dispose & Check
+
+        // 模型使用计数
+        private int _modelUsageCount = 0;
+
+        /// <summary>
+        /// 模型使用计数 - 开始
+        /// </summary>
+        public void BeginUseModel()
+        {
+            Interlocked.Increment(ref _modelUsageCount);
+        }
+
+        /// <summary>
+        /// 模型使用计数 - 结束
+        /// </summary>
+        public void EndUseModel()
+        {
+            Interlocked.Decrement(ref _modelUsageCount);
+        }
+
+        /// <summary>
+        /// 模型自动释放检查
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CheckIdle(object? sender, object e)
+        {
+            if (DateTime.Now - _lastUsedTime > _idleThreshold && GlobalSettings.IsModelLoaded && _modelUsageCount==0)
+            {
+                DisposeModel();
+            }
+        }
+
         /// <summary>
         /// 主动释放模型资源
         /// </summary>
@@ -577,6 +621,10 @@ namespace LLamaWorker.Services
             }
         }
 
+        /// <summary>
+        /// 是否已释放资源
+        /// </summary>
+        private bool _disposedValue = false;
 
         /// <summary>
         /// 释放非托管资源
@@ -603,6 +651,7 @@ namespace LLamaWorker.Services
             GC.SuppressFinalize(this);
         }
 
-        
+        #endregion
+
     }
 }

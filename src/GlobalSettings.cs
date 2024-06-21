@@ -14,5 +14,10 @@ namespace LLamaWorker
         ///  模型是否完成了加载
         /// </summary>
         public static bool IsModelLoaded { get; set; } = false;
+
+        /// <summary>
+        /// 模型自动释放时间
+        /// </summary>
+        public static int AutoReleaseTime { get; set; } = 0;
     }
 }
