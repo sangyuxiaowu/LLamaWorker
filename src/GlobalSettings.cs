@@ -9,5 +9,10 @@ namespace LLamaWorker
         ///  初始加载的模型索引
         /// </summary>
         public static int CurrentModelIndex { get; set; } = 0;
+
+        /// <summary>
+        ///  模型是否完成了加载
+        /// </summary>
+        public static bool IsModelLoaded { get; set; } = false;
     }
 }

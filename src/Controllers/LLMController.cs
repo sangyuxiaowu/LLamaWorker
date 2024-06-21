@@ -40,6 +40,7 @@ namespace LLamaWorker.Controllers
         {
             return new ConfigModels { 
                 Models = _settings,
+                Loaded = GlobalSettings.IsModelLoaded,
                 Current = GlobalSettings.CurrentModelIndex
             };
         }

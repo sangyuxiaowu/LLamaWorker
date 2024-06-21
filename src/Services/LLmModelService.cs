@@ -24,8 +24,7 @@ namespace LLamaWorker.Services
         private LLamaWeights _model;
         private LLamaContext _context;
         private LLamaEmbedder? _embedder;
-        // 模型是否已加载
-        private bool isLoaded = false;
+
         // 已加载模型ID，-1表示未加载
         private int _loadModelIndex = -1;
 
@@ -79,14 +78,14 @@ namespace LLamaWorker.Services
             }
 
             // 重新加载,释放资源
-            if (isLoaded)
+            if (GlobalSettings.IsModelLoaded)
             {
                 _embedder?.Dispose();
                 _context.Dispose();
                 _model.Dispose();
             }
 
-            isLoaded = false;
+            GlobalSettings.IsModelLoaded = false;
             _loadModelIndex = -1;
 
             _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
@@ -98,7 +97,7 @@ namespace LLamaWorker.Services
 
             _usedset = usedset;
             _loadModelIndex = loadModelIndex;
-            isLoaded = true;
+            GlobalSettings.IsModelLoaded = true;
         }
 
 
