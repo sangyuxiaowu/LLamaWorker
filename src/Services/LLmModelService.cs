@@ -391,7 +391,7 @@ namespace LLamaWorker.Services
         /// <returns>词嵌入</returns>
         public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request)
         {
-            
+
             var embeddings = new List<float[]>();
             foreach (var text in request.input)
             {
@@ -575,6 +575,7 @@ namespace LLamaWorker.Services
         #region Dispose & Check
 
         // 模型使用计数
+        // 暂未使用
         private int _modelUsageCount = 0;
 
         /// <summary>
@@ -602,6 +603,7 @@ namespace LLamaWorker.Services
         {
             if (DateTime.Now - _lastUsedTime > _idleThreshold && GlobalSettings.IsModelLoaded && _modelUsageCount==0)
             {
+                _logger.LogInformation("Auto release model.");
                 DisposeModel();
             }
         }
