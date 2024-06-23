@@ -1,3 +1,5 @@
+![](doc/logo.png)
+
 # LLamaWorker
 
 LLamaWorker is a HTTP API server developed based on the [LLamaSharp](https://github.com/SciSharp/LLamaSharp) project. It provides an OpenAI-compatible API, making it easy for developers to integrate Large Language Models (LLM) into their applications.
