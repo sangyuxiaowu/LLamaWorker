@@ -1,5 +1,6 @@
 ﻿using Gradio.Net;
 using Gradio.Net.Enums;
+using LLamaWorker.Models;
 using LLamaWorker.Models.OpenAI;
 using System.Text;
 using System.Text.Json;
@@ -18,12 +19,17 @@ static async Task<Blocks> CreateBlocks()
         gr.Markdown("# LLamaWorker");
         Textbox input;
         Dropdown model;
+        Button btnset;
 
         using (gr.Row())
         {
-            input = gr.Textbox("http://localhost:5000", placeholder: "LLamaWorker Server URL",label:"Server");
-            model = gr.Dropdown(choices: ["default"], label: "Model Select");
+            input = gr.Textbox("http://localhost:5000", placeholder: "LLamaWorker Server URL", label: "Server");
+            btnset = gr.Button("Get Models", variant: ButtonVariant.Primary);
+            model = gr.Dropdown(choices: [], label: "Model Select");
         }
+
+        btnset?.Click(update_models, inputs: [input], outputs: [model]);
+        model?.Change(change_models, inputs: [input, model], outputs: [model]);
 
         using (gr.Tab("Chat"))
         {
@@ -76,6 +82,61 @@ static async Task<Blocks> CreateBlocks()
 
         return blocks;
     }
+}
+
+static async Task<Output> update_models(Input input)
+{
+    string server = Textbox.Payload(input.Data[0]);
+    if (server == "")
+    {
+        throw new Exception("Server URL cannot be empty.");
+    }
+    var res = await new HttpClient().GetFromJsonAsync<ConfigModels>(server + "/models/config");
+    if (res?.Models == null || res.Models.Count==0)
+    {
+        throw new Exception("Failed to fetch models from the server.");
+    }
+    Utils.config = res;
+    var models = res.Models.Select(x => x.Name).ToList();
+    return gr.Output(gr.Dropdown(choices: models,value: models[res.Current], interactive: true));
+}
+
+static async Task<Output> change_models(Input input)
+{
+    var models = Utils.config?.Models?.Select(x => x.Name).ToList();
+    if (models == null)
+    {
+        throw new Exception("Failed to fetch models from the server.");
+    }
+
+    string server = Textbox.Payload(input.Data[0]);
+    string model = Dropdown.Payload(input.Data[1]).Single();
+    if (server == "")
+    {
+        throw new Exception("Server URL cannot be empty.");
+    }
+
+    // 取得模型是第几个
+    var index = models.IndexOf(model);
+    if (index == -1)
+    {
+        throw new Exception("Model not found in the list of available models.");
+    }
+    if (Utils.config.Current == index)
+    {
+        // 没有切换模型
+        return gr.Output(gr.Dropdown(choices: models, value: model, interactive: true));
+    }
+    var res = Utils.client.PutAsync($"{server}/models/{index}/switch", null).Result;
+    // 请求失败
+    if (!res.IsSuccessStatusCode)
+    {
+        return gr.Output(gr.Dropdown(choices: models, value: models[Utils.config.Current], interactive: true));
+        // TODO: 错误信息未返回
+        // throw new Exception("Failed to switch model.");
+    }
+    Utils.config.Current = index;
+    return gr.Output(gr.Dropdown(choices: models, value: model, interactive: true));
 }
 
 static async IAsyncEnumerable<Output> ProcessCompletion(string server, string inputText)
@@ -208,5 +269,13 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, IList<C
 
 static class Utils
 {
+    /// <summary>
+    /// HttpClient
+    /// </summary>
     public static readonly HttpClient client = new HttpClient();
+
+    /// <summary>
+    /// 模型配置信息
+    /// </summary>
+    public static ConfigModels config;
 }
