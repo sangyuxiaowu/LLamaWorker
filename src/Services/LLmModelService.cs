@@ -1,22 +1,21 @@
 ﻿using LLama;
-using LLama.Batched;
+using LLama.Abstractions;
 using LLama.Common;
 using LLamaWorker.Models;
 using LLamaWorker.Models.OpenAI;
 using Microsoft.Extensions.Options;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
-using LLama.Abstractions;
-using System.Reflection;
+
 
 namespace LLamaWorker.Services
 {
     /// <summary>
     /// LLM 模型服务
     /// </summary>
-    public class LLmModelService : IDisposable
+    public class LLmModelService : ILLmModelService
     {
         private readonly ILogger<LLmModelService> _logger;
         private readonly List<LLmModelSettings> _settings;
@@ -24,8 +23,7 @@ namespace LLamaWorker.Services
         private LLamaWeights _model;
         private LLamaContext _context;
         private LLamaEmbedder? _embedder;
-        // 模型是否已加载
-        private bool isLoaded = false;
+
         // 已加载模型ID，-1表示未加载
         private int _loadModelIndex = -1;
 
@@ -35,12 +33,6 @@ namespace LLamaWorker.Services
             WriteIndented = false,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-
-        /// <summary>
-        /// 是否已释放资源
-        /// </summary>
-        private bool _disposedValue = false;
-
 
         /// <summary>
         /// 初始化指定模型
@@ -54,10 +46,11 @@ namespace LLamaWorker.Services
                 throw new ArgumentException("No model settings.");
             }
 
+            // 从配置中获取模型索引
             int loadModelIndex = GlobalSettings.CurrentModelIndex;
 
-            // 模型已加载
-            if (_loadModelIndex == loadModelIndex)
+            // 检查模型是否已加载，且索引相同
+            if (GlobalSettings.IsModelLoaded && _loadModelIndex == loadModelIndex)
             {
                 _logger.LogInformation("Model has been loaded.");
                 return;
@@ -78,16 +71,8 @@ namespace LLamaWorker.Services
                 throw new ArgumentException("Model path is error.");
             }
 
-            // 重新加载,释放资源
-            if (isLoaded)
-            {
-                _embedder?.Dispose();
-                _context.Dispose();
-                _model.Dispose();
-            }
-
-            isLoaded = false;
-            _loadModelIndex = -1;
+            // 适用于模型切换，先释放模型资源
+            DisposeModel();
 
             _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
             _context = new LLamaContext(_model, usedset.ModelParams);
@@ -98,10 +83,10 @@ namespace LLamaWorker.Services
 
             _usedset = usedset;
             _loadModelIndex = loadModelIndex;
-            isLoaded = true;
+            GlobalSettings.IsModelLoaded = true;
         }
 
-
+ 
         /// <summary>
         /// LLmModelService
         /// </summary>
@@ -389,7 +374,7 @@ namespace LLamaWorker.Services
         /// <returns>词嵌入</returns>
         public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request)
         {
-            
+
             var embeddings = new List<float[]>();
             foreach (var text in request.input)
             {
@@ -569,6 +554,29 @@ namespace LLamaWorker.Services
             return inferenceParams;
         }
 
+
+        #region Dispose
+
+        /// <summary>
+        /// 主动释放模型资源
+        /// </summary>
+        public void DisposeModel()
+        {
+            if (GlobalSettings.IsModelLoaded)
+            {
+                _embedder?.Dispose();
+                _context.Dispose();
+                _model.Dispose();
+                GlobalSettings.IsModelLoaded = false;
+                _loadModelIndex = -1;
+            }
+        }
+
+        /// <summary>
+        /// 是否已释放资源
+        /// </summary>
+        private bool _disposedValue = false;
+
         /// <summary>
         /// 释放非托管资源
         /// </summary>
@@ -579,7 +587,7 @@ namespace LLamaWorker.Services
             {
                 if (disposing)
                 {
-                    _model.Dispose();
+                    DisposeModel();
                 }
                 _disposedValue = true;
             }
@@ -590,10 +598,11 @@ namespace LLamaWorker.Services
         /// </summary>
         public void Dispose()
         {
-            Dispose(disposing: true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        
+        #endregion
+
     }
 }

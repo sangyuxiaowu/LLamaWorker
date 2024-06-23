@@ -92,6 +92,11 @@ namespace LLamaWorker.Models
         public int Current { get; set; }
 
         /// <summary>
+        /// 是否已加载
+        /// </summary>
+        public bool Loaded { get; set; }
+
+        /// <summary>
         /// 模型列表
         /// </summary>
         public List<LLmModelSettings>? Models { get; set; }

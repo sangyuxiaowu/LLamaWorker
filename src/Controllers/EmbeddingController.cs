@@ -17,7 +17,7 @@ namespace LLamaWorker.Controllers
     public class EmbeddingController : ControllerBase
     {
         private readonly ILogger<EmbeddingController> _logger;
-        private readonly LLmModelService _modelService;
+        private readonly ILLmModelService _modelService;
         private readonly IConfiguration _configuration;
         private readonly HttpClient _client;
 
@@ -28,7 +28,7 @@ namespace LLamaWorker.Controllers
         /// <param name="modelService">llama 服务</param>
         /// <param name="configuration">配置服务</param>
         /// <param name="client">HttpClient</param>
-        public EmbeddingController(ILogger<EmbeddingController> logger, LLmModelService modelService, IConfiguration configuration, HttpClient client)
+        public EmbeddingController(ILogger<EmbeddingController> logger, ILLmModelService modelService, IConfiguration configuration, HttpClient client)
         {
             _logger = logger;
             _modelService = modelService;

@@ -39,7 +39,7 @@ namespace LLamaWorker.Controllers
         [Produces("text/event-stream")]
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(ChatCompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
-        public async Task<IResult> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request, [FromServices] LLmModelService service)
+        public async Task<IResult> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request, [FromServices] ILLmModelService service)
         {
             try
             {

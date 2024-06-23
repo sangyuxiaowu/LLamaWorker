@@ -39,7 +39,7 @@ namespace LLamaWorker.Controllers
         [Produces("text/event-stream")]
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(CompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
-        public async Task<IResult> CreateCompletionAsync([FromBody] CompletionRequest request, [FromServices] LLmModelService service)
+        public async Task<IResult> CreateCompletionAsync([FromBody] CompletionRequest request, [FromServices] ILLmModelService service)
         {
             try
             {
