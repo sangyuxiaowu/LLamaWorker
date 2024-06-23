@@ -13,6 +13,8 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp)
 - **流式响应**: 支持流式响应，提高大型响应的处理效率。
 - **嵌入支持**: 提供文本嵌入功能，支持多种嵌入模型。
 - **对话模版**: 提供了一些常见的对话模版。
+- **自动释放**: 支持自动释放已加载模型。
+- **Gradio UI Demo**: 提供了一个基于 Gradio.NET 的 UI 演示。
 
 ## 快速开始
 
@@ -56,3 +58,18 @@ LLamaWorker 提供以下 API 端点：
 - `/models/info`: 返回模型的基本信息
 - `/models/config`: 返回已配置的模型信息
 - `/models/{modelId}/switch`: 切换到指定模型
+
+## Gradio UI Demo
+
+这个 UI 基于 [Gradio.NET](https://github.com/feiyun0112/Gradio.Net?wt.mc_id=DT-MVP-5005195)。
+
+你也可以通过运行以下命令尝试 Gradio UI 演示：
+
+```bash
+dotnet restore ChatUI\ChatUI.csproj
+dotnet run --project ChatUI\ChatUI.csproj
+```
+
+然后打开浏览器访问 Gradio UI 演示。
+
+![](doc/ui.png)

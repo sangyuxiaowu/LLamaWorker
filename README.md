@@ -13,6 +13,8 @@ English | [中文](README_CN.md)
 - **Streaming Response**: Supports streaming responses to improve the efficiency of processing large responses.
 - **Embedding Support**: Provides text embedding functionality with support for various embedding models.
 - **chat templates**: Provides some common chat templates.
+- **Auto-Release**: Supports automatic release of loaded models.
+- **Gradio UI Demo**: Provides a UI demo based on Gradio.NET.
 
 ## Quick Start
 
@@ -55,3 +57,18 @@ LLamaWorker offers the following API endpoints:
 - `/models/info`: Returns basic information about the model
 - `/models/config`: Returns information about configured models
 - `/models/{modelId}/switch`: Switch to a specified model
+
+## Gradio UI Demo
+
+This ui is based on [Gradio.NET](https://github.com/feiyun0112/Gradio.Net?wt.mc_id=DT-MVP-5005195).
+
+You can also try the Gradio UI demo by running the following command:
+
+```bash
+dotnet restore ChatUI\ChatUI.csproj
+dotnet run --project ChatUI\ChatUI.csproj
+```
+
+Then open the browser and visit the Gradio UI demo.
+
+![](doc/ui.png)
