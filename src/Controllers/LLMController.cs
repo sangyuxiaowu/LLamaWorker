@@ -26,7 +26,7 @@ namespace LLamaWorker.Controllers
         /// </remarks>
         /// <returns></returns>
         [HttpGet("/models/info")]
-        public JsonResult GetModels([FromServices] LLmModelService service)
+        public JsonResult GetModels([FromServices] ILLmModelService service)
         {
             var json = service.GetModelInfo();
             return new JsonResult(json);
@@ -51,7 +51,7 @@ namespace LLamaWorker.Controllers
         /// <param name="modelId">模型ID</param>
         /// <param name="service"></param>
         [HttpPut("/models/{modelId}/switch")]
-        public IActionResult SwitchModel(int modelId, [FromServices] LLmModelService service)
+        public IActionResult SwitchModel(int modelId, [FromServices] ILLmModelService service)
         {
             int index = GlobalSettings.CurrentModelIndex;
             try
