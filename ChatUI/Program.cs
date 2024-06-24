@@ -1,5 +1,6 @@
 ﻿using Gradio.Net;
 using Gradio.Net.Enums;
+using Gradio.Net.Models;
 using LLamaWorker.Models;
 using LLamaWorker.Models.OpenAI;
 using System.Text;
@@ -127,13 +128,14 @@ static async Task<Output> change_models(Input input)
         // 没有切换模型
         return gr.Output(gr.Dropdown(choices: models, value: model, interactive: true));
     }
-    var res = Utils.client.PutAsync($"{server}/models/{index}/switch", null).Result;
+    var res = await Utils.client.PutAsync($"{server}/models/{index}/switch", null);
     // 请求失败
     if (!res.IsSuccessStatusCode)
     {
-        return gr.Output(gr.Dropdown(choices: models, value: models[Utils.config.Current], interactive: true));
         // TODO: 错误信息未返回
+        // gr.Warning("Failed to switch model.");
         // throw new Exception("Failed to switch model.");
+        return gr.Output(gr.Dropdown(choices: models, value: models[Utils.config.Current], interactive: true));
     }
     Utils.config.Current = index;
     return gr.Output(gr.Dropdown(choices: models, value: model, interactive: true));
