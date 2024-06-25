@@ -2,7 +2,7 @@
 using LLamaWorker.Middleware;
 using LLamaWorker.Models;
 using LLamaWorker.Services;
-using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 namespace LLamaWorker
@@ -17,17 +17,61 @@ namespace LLamaWorker
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(options =>
-            {
-                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-            });
 
+            // 配置服务
             builder.Services.Configure<List<LLmModelSettings>>(
                 builder.Configuration.GetSection(nameof(LLmModelSettings))
             );
             // 自动释放配置
             GlobalSettings.AutoReleaseTime = builder.Configuration.GetValue<int>("AutoReleaseTime");
+            // ApiKey 配置
+            var apiKey = builder.Configuration.GetValue<string>("ApiKey");
+
+
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo { 
+                    Title = "LLamaWorker",
+                    Version = "v1",
+                    Description = "LLamaWorker API",
+                    License = new OpenApiLicense
+                    {
+                        Name = "Apache License 2.0",
+                        Url = new System.Uri("https://github.com/sangyuxiaowu/LLamaWorker/blob/main/LICENSE.txt")
+                    },
+                    TermsOfService = new System.Uri("https://github.com/sangyuxiaowu/LLamaWorker"),
+                });
+
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+                if (string.IsNullOrEmpty(apiKey)) return;
+
+                var securityScheme = new OpenApiSecurityScheme()
+                {
+                    Description = "API Key Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {API_KEY}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer"
+                };
+                options.AddSecurityDefinition("API_KEY", securityScheme);
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "API_KEY"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
+            });
+
 
             builder.Services.AddSingleton<ILLmModelService, LLmModelDecorator>();
 
@@ -53,7 +97,27 @@ namespace LLamaWorker
                 app.UseSwaggerUI();
             }
 
-            app.UseAuthorization();
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                app.Use(async (context, next) =>
+                {
+                    var found = context.Request.Headers.TryGetValue("Authorization", out var key);
+
+                    key = key.ToString().Split(" ")[^1];
+
+                    if (found && key == apiKey)
+                    {
+                        await next(context);
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 401;
+                        await context.Response.WriteAsync("Unauthorized");
+                        return;
+                    }
+                });
+            }
+
             // 处理 stop 参数
             app.UseMiddleware<TypeConversionMiddleware>();
             app.MapControllers();
