@@ -2,7 +2,7 @@
 
 # LLamaWorker
 
-LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp) 项目开发的 HTTP API 服务器。它提供与 OpenAI 兼容的 API，使得开发者可以轻松地将大型语言模型（LLM）集成到自己的应用程序中。
+LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?wt.mc_id=DT-MVP-5005195) 项目开发的 HTTP API 服务器。它提供与 OpenAI 兼容的 API，使得开发者可以轻松地将大型语言模型（LLM）集成到自己的应用程序中。
 
 [English](README.md)] | 中文
 

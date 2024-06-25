@@ -1,6 +1,5 @@
 ﻿using Gradio.Net;
 using Gradio.Net.Enums;
-using Gradio.Net.Models;
 using LLamaWorker.Models;
 using LLamaWorker.Models.OpenAI;
 using System.Text;
@@ -18,18 +17,19 @@ static async Task<Blocks> CreateBlocks()
     using (var blocks = gr.Blocks(analyticsEnabled:false,title: "LLamaWorker"))
     {
         gr.Markdown("# LLamaWorker");
-        Textbox input;
+        Textbox input,token;
         Dropdown model;
         Button btnset;
 
         using (gr.Row())
         {
             input = gr.Textbox("http://localhost:5000", placeholder: "LLamaWorker Server URL", label: "Server");
+            token = gr.Textbox(placeholder: "API Token", label: "Token");
             btnset = gr.Button("Get Models", variant: ButtonVariant.Primary);
             model = gr.Dropdown(choices: [], label: "Model Select");
         }
 
-        btnset?.Click(update_models, inputs: [input], outputs: [model]);
+        btnset?.Click(update_models, inputs: [input, token], outputs: [model]);
         model?.Change(change_models, inputs: [input, model], outputs: [model]);
 
         using (gr.Tab("Chat"))
@@ -49,13 +49,15 @@ static async Task<Blocks> CreateBlocks()
             sendButton?.Click(streamingFn: i =>
             {
                 string server = Textbox.Payload(i.Data[0]);
+                string token = Textbox.Payload(i.Data[3]);
                 IList<ChatbotMessagePair> chatHistory = Chatbot.Payload(i.Data[1]);
                 string userInput = Textbox.Payload(i.Data[2]);
-                return ProcessChatMessages(server, chatHistory, userInput);
-            }, inputs: [input, chatBot, userInput], outputs: [userInput, chatBot]);
+                return ProcessChatMessages(server, token, chatHistory, userInput);
+            }, inputs: [input, chatBot, userInput, token], outputs: [userInput, chatBot]);
             regenerateButton?.Click(streamingFn: i =>
             {
                 string server = Textbox.Payload(i.Data[0]);
+                string token = Textbox.Payload(i.Data[2]);
                 IList<ChatbotMessagePair> chatHistory = Chatbot.Payload(i.Data[1]);
                 if (chatHistory.Count == 0)
                 {
@@ -63,8 +65,8 @@ static async Task<Blocks> CreateBlocks()
                 }
                 string userInput = chatHistory[^1].HumanMessage.TextMessage;
                 chatHistory.RemoveAt(chatHistory.Count - 1);
-                return ProcessChatMessages(server, chatHistory, userInput);
-            }, inputs: [input, chatBot], outputs: [userInput, chatBot]);
+                return ProcessChatMessages(server, token, chatHistory, userInput);
+            }, inputs: [input, chatBot, token], outputs: [userInput, chatBot]);
             resetButton?.Click(i => Task.FromResult(gr.Output(Array.Empty<ChatbotMessagePair>(), "")), outputs: [chatBot, userInput]);
         }
 
@@ -76,9 +78,10 @@ static async Task<Blocks> CreateBlocks()
             button?.Click(i =>
             {
                 string server = Textbox.Payload(i.Data[0]);
+                string token = Textbox.Payload(i.Data[2]);
                 var inputText = Textbox.Payload(i.Data[1]);
-                return ProcessCompletion(server, inputText);
-            }, inputs: [input, text_Input], outputs: [text_Result]);
+                return ProcessCompletion(server, token, inputText);
+            }, inputs: [input, text_Input, token], outputs: [text_Result]);
         }
 
         return blocks;
@@ -88,11 +91,16 @@ static async Task<Blocks> CreateBlocks()
 static async Task<Output> update_models(Input input)
 {
     string server = Textbox.Payload(input.Data[0]);
+    string token = Textbox.Payload(input.Data[1]);
     if (server == "")
     {
         throw new Exception("Server URL cannot be empty.");
     }
-    var res = await new HttpClient().GetFromJsonAsync<ConfigModels>(server + "/models/config");
+    if (!string.IsNullOrWhiteSpace(token))
+    {
+        Utils.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+    var res = await Utils.client.GetFromJsonAsync<ConfigModels>(server + "/models/config");
     if (res?.Models == null || res.Models.Count==0)
     {
         throw new Exception("Failed to fetch models from the server.");
@@ -141,7 +149,7 @@ static async Task<Output> change_models(Input input)
     return gr.Output(gr.Dropdown(choices: models, value: model, interactive: true));
 }
 
-static async IAsyncEnumerable<Output> ProcessCompletion(string server, string inputText)
+static async IAsyncEnumerable<Output> ProcessCompletion(string server, string token, string inputText)
 {
     if (inputText == "")
     {
@@ -151,6 +159,10 @@ static async IAsyncEnumerable<Output> ProcessCompletion(string server, string in
 
     var request = new HttpRequestMessage(HttpMethod.Post, $"{server}/v1/completions");
     request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
+    if (!string.IsNullOrWhiteSpace(token))
+    {
+        Utils.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
 
     request.Content = new StringContent(JsonSerializer.Serialize(new CompletionRequest
     {
@@ -192,7 +204,7 @@ static async IAsyncEnumerable<Output> ProcessCompletion(string server, string in
 
 }
 
-static async IAsyncEnumerable<Output> ProcessChatMessages(string server, IList<ChatbotMessagePair> chatHistory, string message)
+static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string token, IList<ChatbotMessagePair> chatHistory, string message)
 {
     if (message == "")
     {
@@ -206,6 +218,10 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, IList<C
     // sse 请求
     var request = new HttpRequestMessage(HttpMethod.Post, $"{server}/v1/chat/completions");
     request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/event-stream"));
+    if (!string.IsNullOrWhiteSpace(token))
+    {
+        Utils.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
 
     var messages =new List<ChatCompletionMessage>();
     foreach (var item in chatHistory)
