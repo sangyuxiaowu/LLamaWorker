@@ -24,7 +24,7 @@ static async Task<Blocks> CreateBlocks()
         using (gr.Row())
         {
             input = gr.Textbox("http://localhost:5000", placeholder: "LLamaWorker Server URL", label: "Server");
-            token = gr.Textbox(placeholder: "API Token", label: "Token", type:TextboxType.Password);
+            token = gr.Textbox(placeholder: "API Key", label: "API Key", type:TextboxType.Password);
             btnset = gr.Button("Get Models", variant: ButtonVariant.Primary);
             model = gr.Dropdown(choices: [], label: "Model Select");
         }
