@@ -132,9 +132,9 @@ static async Task<Output> change_models(Input input)
     // 请求失败
     if (!res.IsSuccessStatusCode)
     {
-        // TODO: 错误信息未返回
-        // gr.Warning("Failed to switch model.");
-        // throw new Exception("Failed to switch model.");
+        // 错误信息未返回
+        gr.Warning("Failed to switch model.");
+        await Task.Delay(1000);
         return gr.Output(gr.Dropdown(choices: models, value: models[Utils.config.Current], interactive: true));
     }
     Utils.config.Current = index;
