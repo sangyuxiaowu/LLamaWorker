@@ -14,6 +14,7 @@ English | [中文](README_CN.md)
 - **Embedding Support**: Provides text embedding functionality with support for various embedding models.
 - **chat templates**: Provides some common chat templates.
 - **Auto-Release**: Supports automatic release of loaded models.
+- **API Key Authentication**: Supports API Key authentication.
 - **Gradio UI Demo**: Provides a UI demo based on Gradio.NET.
 
 ## Quick Start
