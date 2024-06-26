@@ -24,9 +24,9 @@ static async Task<Blocks> CreateBlocks()
         using (gr.Row())
         {
             input = gr.Textbox("http://localhost:5000", placeholder: "LLamaWorker Server URL", label: "Server");
-            token = gr.Textbox(placeholder: "API Key", label: "API Key", type:TextboxType.Password);
+            token = gr.Textbox(placeholder: "API Key", label: "API Key", maxLines:1, type:TextboxType.Password);
             btnset = gr.Button("Get Models", variant: ButtonVariant.Primary);
-            model = gr.Dropdown(choices: [], label: "Model Select");
+            model = gr.Dropdown(choices: [], label: "Model Select", allowCustomValue:true);
         }
 
         btnset?.Click(update_models, inputs: [input, token], outputs: [model]);
@@ -50,14 +50,16 @@ static async Task<Blocks> CreateBlocks()
             {
                 string server = Textbox.Payload(i.Data[0]);
                 string token = Textbox.Payload(i.Data[3]);
+                string model = Dropdown.Payload(i.Data[4]).Single();
                 IList<ChatbotMessagePair> chatHistory = Chatbot.Payload(i.Data[1]);
                 string userInput = Textbox.Payload(i.Data[2]);
-                return ProcessChatMessages(server, token, chatHistory, userInput);
-            }, inputs: [input, chatBot, userInput, token], outputs: [userInput, chatBot]);
+                return ProcessChatMessages(server, token, model, chatHistory, userInput);
+            }, inputs: [input, chatBot, userInput, token, model], outputs: [userInput, chatBot]);
             regenerateButton?.Click(streamingFn: i =>
             {
                 string server = Textbox.Payload(i.Data[0]);
                 string token = Textbox.Payload(i.Data[2]);
+                string model = Dropdown.Payload(i.Data[3]).Single();
                 IList<ChatbotMessagePair> chatHistory = Chatbot.Payload(i.Data[1]);
                 if (chatHistory.Count == 0)
                 {
@@ -65,8 +67,8 @@ static async Task<Blocks> CreateBlocks()
                 }
                 string userInput = chatHistory[^1].HumanMessage.TextMessage;
                 chatHistory.RemoveAt(chatHistory.Count - 1);
-                return ProcessChatMessages(server, token, chatHistory, userInput);
-            }, inputs: [input, chatBot, token], outputs: [userInput, chatBot]);
+                return ProcessChatMessages(server, token, model, chatHistory, userInput);
+            }, inputs: [input, chatBot, token, model], outputs: [userInput, chatBot]);
             resetButton?.Click(i => Task.FromResult(gr.Output(Array.Empty<ChatbotMessagePair>(), "")), outputs: [chatBot, userInput]);
         }
 
@@ -79,9 +81,10 @@ static async Task<Blocks> CreateBlocks()
             {
                 string server = Textbox.Payload(i.Data[0]);
                 string token = Textbox.Payload(i.Data[2]);
+                string model = Dropdown.Payload(i.Data[3]).Single();
                 var inputText = Textbox.Payload(i.Data[1]);
-                return ProcessCompletion(server, token, inputText);
-            }, inputs: [input, text_Input, token], outputs: [text_Result]);
+                return ProcessCompletion(server, token, model, inputText);
+            }, inputs: [input, text_Input, token, model], outputs: [text_Result]);
         }
 
         return blocks;
@@ -107,19 +110,21 @@ static async Task<Output> update_models(Input input)
     }
     Utils.config = res;
     var models = res.Models.Select(x => x.Name).ToList();
-    return gr.Output(gr.Dropdown(choices: models,value: models[res.Current], interactive: true));
+    return gr.Output(gr.Dropdown(choices: models, value: models[res.Current], interactive: true));
 }
 
 static async Task<Output> change_models(Input input)
 {
-    var models = Utils.config?.Models?.Select(x => x.Name).ToList();
-    if (models == null)
-    {
-        throw new Exception("Failed to fetch models from the server.");
-    }
-
     string server = Textbox.Payload(input.Data[0]);
     string model = Dropdown.Payload(input.Data[1]).Single();
+
+    var models = Utils.config?.Models?.Select(x => x.Name).ToList();
+    // 未使用服务端模型配置，允许自定义模型
+    if (models == null)
+    {
+        return gr.Output(gr.Dropdown(choices: [model], value: model, interactive: true, allowCustomValue: true));
+    }
+
     if (server == "")
     {
         throw new Exception("Server URL cannot be empty.");
@@ -142,14 +147,13 @@ static async Task<Output> change_models(Input input)
     {
         // 错误信息未返回
         gr.Warning("Failed to switch model.");
-        await Task.Delay(1000);
         return gr.Output(gr.Dropdown(choices: models, value: models[Utils.config.Current], interactive: true));
     }
     Utils.config.Current = index;
     return gr.Output(gr.Dropdown(choices: models, value: model, interactive: true));
 }
 
-static async IAsyncEnumerable<Output> ProcessCompletion(string server, string token, string inputText)
+static async IAsyncEnumerable<Output> ProcessCompletion(string server, string token, string model, string inputText)
 {
     if (inputText == "")
     {
@@ -166,7 +170,7 @@ static async IAsyncEnumerable<Output> ProcessCompletion(string server, string to
 
     request.Content = new StringContent(JsonSerializer.Serialize(new CompletionRequest
     {
-        model = "default",
+        model = model,
         max_tokens = 1024,
         prompt = inputText,
         stream = true,
@@ -204,7 +208,7 @@ static async IAsyncEnumerable<Output> ProcessCompletion(string server, string to
 
 }
 
-static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string token, IList<ChatbotMessagePair> chatHistory, string message)
+static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string token, string model, IList<ChatbotMessagePair> chatHistory, string message)
 {
     if (message == "")
     {
@@ -248,8 +252,10 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
     {
         stream = true,
         messages = messages.ToArray(),
-        model = "default",
-        max_tokens = 1024
+        model = model,
+        max_tokens = 1024,
+        temperature = 0.9f,
+        top_p = 0.9f,
     }), Encoding.UTF8, "application/json");
 
     using var response = await Utils.client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
