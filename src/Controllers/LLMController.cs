@@ -1,6 +1,7 @@
 ﻿using LLamaWorker.Models;
 using LLamaWorker.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LLamaWorker.Controllers
 {
@@ -49,15 +50,26 @@ namespace LLamaWorker.Controllers
         /// 切换到指定模型
         /// </summary>
         /// <param name="modelId">模型ID</param>
-        /// <param name="service"></param>
         [HttpPut("/models/{modelId}/switch")]
-        public IActionResult SwitchModel(int modelId, [FromServices] ILLmModelService service)
+        public IActionResult SwitchModel(int modelId)
         {
+            if (modelId < 0 || modelId >= _settings.Count)
+            {
+                return BadRequest("Invalid model id");
+            }
+
+            // 保存当前模型索引
             int index = GlobalSettings.CurrentModelIndex;
+
+            if (GlobalSettings.CurrentModelIndex == modelId)
+            {
+                return Ok();
+            }
+
             try
             {
                 GlobalSettings.CurrentModelIndex = modelId;
-                // 加载模型
+                var service = HttpContext.RequestServices.GetRequiredService<ILLmModelService>();
                 service.InitModelIndex();
             }
             catch(Exception e)
