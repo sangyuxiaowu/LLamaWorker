@@ -231,23 +231,23 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
     var messages =new List<ChatCompletionMessage>();
     foreach (var item in chatHistory)
     {
-        messages.Add(new ChatCompletionMessage
+        if (!string.IsNullOrEmpty(item.HumanMessage.TextMessage))
         {
-            role = "user",
-            content = item.HumanMessage.TextMessage
-        });
-        messages.Add(new ChatCompletionMessage
+            messages.Add(new ChatCompletionMessage
+            {
+                role = "user",
+                content = item.HumanMessage.TextMessage
+            });
+        }
+        if (!string.IsNullOrEmpty(item.AiMessage.TextMessage))
         {
-            role = "assistant",
-            content = item.AiMessage.TextMessage
-        });
+            messages.Add(new ChatCompletionMessage
+            {
+                role = "assistant",
+                content = item.AiMessage.TextMessage
+            });
+        }
     }
-    messages.Add(new ChatCompletionMessage
-    {
-        role = "user",
-        content = message
-    });
-
 
     request.Content = new StringContent(JsonSerializer.Serialize(new ChatCompletionRequest
     {
