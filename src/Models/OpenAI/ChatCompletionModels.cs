@@ -17,6 +17,7 @@ namespace LLamaWorker.Models.OpenAI
         /// <summary>
         /// 控制模型是否调用某个工具，以及如何调用。
         /// 可以是字符串（"none", "auto", "required"）或一个指定工具的对象。
+        /// {"type": "function", "function": {"name": "my_function"}}
         /// 默认为"none"，表示模型不会调用任何工具，而是生成一条消息。
         /// 如果存在工具，则默认为"auto"。
         /// </summary>

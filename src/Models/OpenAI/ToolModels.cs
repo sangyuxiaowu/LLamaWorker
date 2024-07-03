@@ -11,6 +11,17 @@
         public string type { get; set; } = "function";
 
         /// <summary>
+        /// 函数信息
+        /// </summary>
+        public required FunctionInfo function { get; set; }
+    }
+
+    /// <summary>
+    /// 函数信息
+    /// </summary>
+    public class FunctionInfo
+    {
+        /// <summary>
         /// 要调用的函数的名称。必须是a-z、a-z、0-9，或包含下划线和短划线，最大长度为64。
         /// </summary>
         public required string name { get; set; }
@@ -40,7 +51,7 @@
         /// 参数的属性，描述为JSON模式对象。
         /// 所含键值的类型为 ParameterInfo
         /// </summary>
-        public required object properties { get; set; }
+        public required Dictionary<string, ParameterInfo> properties { get; set; }
 
         /// <summary>
         /// 必需的参数名称列表。
