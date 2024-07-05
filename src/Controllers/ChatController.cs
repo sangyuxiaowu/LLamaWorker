@@ -36,6 +36,7 @@ namespace LLamaWorker.Controllers
         /// <response code="400">¥ÌŒÛ–≈œ¢</response>
         [HttpPost("/v1/chat/completions")]
         [HttpPost("/chat/completions")]
+        [HttpPost("/openai/deployments/{model}/chat/completions")]
         [Produces("text/event-stream")]
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(ChatCompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
