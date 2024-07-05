@@ -16,7 +16,7 @@ namespace LLamaWorker.Models.OpenAI
         /// <summary>
         /// 为每条输入消息生成多少个聊天完成选项。
         /// </summary>
-        public int n { get; set; } = 1;
+        public int? n { get; set; } = 1;
 
         /// <summary>
         /// 温度：控制随机性。降低温度意味着模型将产生更多重复和确定性的响应。
