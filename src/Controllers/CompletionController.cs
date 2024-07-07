@@ -36,6 +36,7 @@ namespace LLamaWorker.Controllers
         /// <response code="400">¥ÌŒÛ–≈œ¢</response>
         [HttpPost("/v1/completions")]
         [HttpPost("/completions")]
+        [HttpPost("/openai/deployments/{model}/completions")]
         [Produces("text/event-stream")]
         [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(CompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]

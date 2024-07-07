@@ -43,6 +43,7 @@ namespace LLamaWorker.Controllers
         /// <returns></returns>
         [HttpPost("/v1/embeddings")]
         [HttpPost("/embeddings")]
+        [HttpPost("/openai/deployments/{model}/embeddings")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EmbeddingResponse))]
         public async Task<IResult> CreateEmbeddingAsync([FromBody] EmbeddingRequest request)
         {
