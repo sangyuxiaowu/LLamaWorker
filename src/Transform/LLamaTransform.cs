@@ -1,8 +1,4 @@
-﻿using LLama.Abstractions;
-using LLama.Common;
-using System.Text;
-
-namespace LLamaWorker.Transform
+﻿namespace LLamaWorker.Transform
 {
     /// <summary>
     /// ChatML 历史记录转换

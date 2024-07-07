@@ -84,7 +84,7 @@ namespace LLamaWorker.Services
             GlobalSettings.IsModelLoaded = true;
         }
 
- 
+
         /// <summary>
         /// LLmModelService
         /// </summary>
@@ -105,7 +105,7 @@ namespace LLamaWorker.Services
         /// 获取模型信息
         /// </summary>
         /// <returns></returns>
-        public IReadOnlyDictionary<string,string> GetModelInfo()
+        public IReadOnlyDictionary<string, string> GetModelInfo()
         {
             return _model.Metadata;
         }
@@ -147,7 +147,8 @@ namespace LLamaWorker.Services
 
             context.Dispose();
 
-            return new ChatCompletionResponse { 
+            return new ChatCompletionResponse
+            {
                 id = $"chatcmpl-{Guid.NewGuid():N}",
                 model = request.model,
                 created = DateTimeOffset.Now.ToUnixTimeSeconds(),
@@ -336,7 +337,8 @@ namespace LLamaWorker.Services
                 else if (role == "user")
                 {
                     history.AddMessage(AuthorRole.User, message.content);
-                }else if (role == "assistant")
+                }
+                else if (role == "assistant")
                 {
                     history.AddMessage(AuthorRole.Assistant, message.content);
                 }
@@ -348,7 +350,7 @@ namespace LLamaWorker.Services
             }
 
             // 添加系统提示
-            if(!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && !isSystem)
+            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && !isSystem)
             {
                 _logger.LogInformation("Add system prompt.");
                 history.Messages.Insert(0, new ChatHistory.Message(AuthorRole.System, _usedset.SystemPrompt));
@@ -407,7 +409,7 @@ namespace LLamaWorker.Services
         /// </summary>
         public async Task<CompletionResponse> CreateCompletionAsync(CompletionRequest request)
         {
-            if(string.IsNullOrWhiteSpace(request.prompt))
+            if (string.IsNullOrWhiteSpace(request.prompt))
             {
                 _logger.LogWarning("No prompt.");
                 return new CompletionResponse();
@@ -424,7 +426,7 @@ namespace LLamaWorker.Services
                 result += output;
                 completion_tokens++;
             }
-            
+
             return new CompletionResponse
             {
                 id = $"cmpl-{Guid.NewGuid():N}",
@@ -535,7 +537,7 @@ namespace LLamaWorker.Services
             {
                 stop.AddRange(request.stop);
             }
-            if(_usedset.AntiPrompts?.Length>0)
+            if (_usedset.AntiPrompts?.Length > 0)
             {
                 stop.AddRange(_usedset.AntiPrompts);
             }

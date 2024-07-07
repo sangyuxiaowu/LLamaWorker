@@ -4,7 +4,7 @@
     /// 对话完成请求
     /// https://platform.openai.com/docs/api-reference/chat/create
     /// </summary>
-    public class ChatCompletionRequest:BaseCompletionRequest
+    public class ChatCompletionRequest : BaseCompletionRequest
     {
 
         /// <summary>
@@ -51,7 +51,7 @@
     /// <summary>
     /// 聊天完成响应
     /// </summary>
-    public class ChatCompletionResponse: BaseCompletionResponse
+    public class ChatCompletionResponse : BaseCompletionResponse
     {
 
         /// <summary>
@@ -69,12 +69,12 @@
     /// <summary>
     /// 完成的一种选择
     /// </summary>
-    public class ChatCompletionResponseChoice: BaseCompletionResponseChoice
+    public class ChatCompletionResponseChoice : BaseCompletionResponseChoice
     {
         /// <summary>
         /// 模型生成的聊天完成消息
         /// </summary>
-        public ChatCompletionMessage message { get; set; } = new ();
+        public ChatCompletionMessage message { get; set; } = new();
 
     }
 
@@ -99,7 +99,7 @@
     /// <summary>
     /// 流式响应完成的详情
     /// </summary>
-    public class ChatCompletionChunkResponseChoice: BaseCompletionResponseChoice
+    public class ChatCompletionChunkResponseChoice : BaseCompletionResponseChoice
     {
         /// <summary>
         /// 由流式模型响应生成的聊天完成增量。

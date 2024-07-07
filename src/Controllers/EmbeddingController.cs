@@ -1,8 +1,6 @@
 ﻿using LLamaWorker.OpenAIModels;
 using LLamaWorker.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
 
@@ -49,7 +47,7 @@ namespace LLamaWorker.Controllers
         {
             try
             {
-                if(request == null)
+                if (request == null)
                 {
                     return Results.BadRequest("Request is null");
                 }
@@ -82,7 +80,7 @@ namespace LLamaWorker.Controllers
                         return Results.BadRequest(response.ReasonPhrase);
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {

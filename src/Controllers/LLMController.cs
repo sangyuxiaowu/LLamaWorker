@@ -1,7 +1,6 @@
 ﻿using LLamaWorker.Config;
 using LLamaWorker.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LLamaWorker.Controllers
 {
@@ -39,7 +38,8 @@ namespace LLamaWorker.Controllers
         [HttpGet("/models/config")]
         public ConfigModels GetConfigModels()
         {
-            return new ConfigModels { 
+            return new ConfigModels
+            {
                 Models = _settings,
                 Loaded = GlobalSettings.IsModelLoaded,
                 Current = GlobalSettings.CurrentModelIndex
@@ -72,7 +72,7 @@ namespace LLamaWorker.Controllers
                 var service = HttpContext.RequestServices.GetRequiredService<ILLmModelService>();
                 service.InitModelIndex();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 GlobalSettings.CurrentModelIndex = index;
                 return BadRequest(e.Message);

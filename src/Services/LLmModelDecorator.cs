@@ -106,7 +106,7 @@ namespace LLamaWorker.Services
                 EndUseModel();
                 _lastUsedTime = DateTime.Now;
             }
-            
+
         }
 
         public IReadOnlyDictionary<string, string> GetModelInfo()

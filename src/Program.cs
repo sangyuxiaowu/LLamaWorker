@@ -1,6 +1,6 @@
 
-using LLamaWorker.Middleware;
 using LLamaWorker.Config;
+using LLamaWorker.Middleware;
 using LLamaWorker.Services;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -30,7 +30,8 @@ namespace LLamaWorker
 
             builder.Services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo { 
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
                     Title = "LLamaWorker",
                     Version = "v1",
                     Description = "LLamaWorker API",

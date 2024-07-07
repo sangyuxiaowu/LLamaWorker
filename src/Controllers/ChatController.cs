@@ -38,7 +38,7 @@ namespace LLamaWorker.Controllers
         [HttpPost("/chat/completions")]
         [HttpPost("/openai/deployments/{model}/chat/completions")]
         [Produces("text/event-stream")]
-        [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(ChatCompletionResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChatCompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
         public async Task<IResult> CreateChatCompletionAsync([FromBody] ChatCompletionRequest request, [FromServices] ILLmModelService service)
         {
@@ -50,7 +50,7 @@ namespace LLamaWorker.Controllers
                     string first = " ";
                     await foreach (var item in service.CreateChatCompletionStreamAsync(request))
                     {
-                        if(first == " ")
+                        if (first == " ")
                         {
                             first = item;
                         }
@@ -75,14 +75,14 @@ namespace LLamaWorker.Controllers
                 {
                     return Results.Ok(await service.CreateChatCompletionAsync(request));
                 }
-                
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in CreateChatCompletionAsync");
                 return Results.Problem($"{ex.Message}");
             }
-                
+
         }
     }
 }

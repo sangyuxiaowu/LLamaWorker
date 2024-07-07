@@ -38,7 +38,7 @@ namespace LLamaWorker.Controllers
         [HttpPost("/completions")]
         [HttpPost("/openai/deployments/{model}/completions")]
         [Produces("text/event-stream")]
-        [ProducesResponseType(StatusCodes.Status200OK,Type = typeof(CompletionResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
         public async Task<IResult> CreateCompletionAsync([FromBody] CompletionRequest request, [FromServices] ILLmModelService service)
         {
@@ -50,7 +50,7 @@ namespace LLamaWorker.Controllers
                     string first = " ";
                     await foreach (var item in service.CreateCompletionStreamAsync(request))
                     {
-                        if(first == " ")
+                        if (first == " ")
                         {
                             first = item;
                         }
@@ -75,14 +75,14 @@ namespace LLamaWorker.Controllers
                 {
                     return Results.Ok(await service.CreateCompletionAsync(request));
                 }
-                
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in CreateCompletionAsync");
                 return Results.Problem($"{ex.Message}");
             }
-                
+
         }
     }
 }

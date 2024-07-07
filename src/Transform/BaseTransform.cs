@@ -28,7 +28,7 @@ namespace LLamaWorker.Transform
         /// 结束标记
         /// </summary>
         protected virtual string endToken => "<|im_end|>";
-        
+
 
         IHistoryTransform IHistoryTransform.Clone()
         {

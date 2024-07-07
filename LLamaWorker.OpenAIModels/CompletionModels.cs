@@ -4,7 +4,7 @@
     /// 提示完成请求
     /// https://platform.openai.com/docs/api-reference/completions
     /// </summary>
-    public class CompletionRequest:BaseCompletionRequest
+    public class CompletionRequest : BaseCompletionRequest
     {
         /// <summary>
         /// 提示词
@@ -18,7 +18,7 @@
     /// <summary>
     /// 聊天完成响应
     /// </summary>
-    public class CompletionResponse: BaseCompletionResponse
+    public class CompletionResponse : BaseCompletionResponse
     {
 
         /// <summary>
@@ -36,7 +36,7 @@
     /// <summary>
     /// 完成的一种选择
     /// </summary>
-    public class CompletionResponseChoice: BaseCompletionResponseChoice
+    public class CompletionResponseChoice : BaseCompletionResponseChoice
     {
         /// <summary>
         /// 模型生成的完成消息

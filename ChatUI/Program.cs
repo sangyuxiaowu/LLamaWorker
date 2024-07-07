@@ -14,19 +14,19 @@ app.Run();
 
 static async Task<Blocks> CreateBlocks()
 {
-    using (var blocks = gr.Blocks(analyticsEnabled:false,title: "LLamaWorker"))
+    using (var blocks = gr.Blocks(analyticsEnabled: false, title: "LLamaWorker"))
     {
         gr.Markdown("# LLamaWorker");
-        Textbox input,token;
+        Textbox input, token;
         Dropdown model;
         Button btnset;
 
         using (gr.Row())
         {
             input = gr.Textbox("http://localhost:5000", placeholder: "LLamaWorker Server URL", label: "Server");
-            token = gr.Textbox(placeholder: "API Key", label: "API Key", maxLines:1, type:TextboxType.Password);
+            token = gr.Textbox(placeholder: "API Key", label: "API Key", maxLines: 1, type: TextboxType.Password);
             btnset = gr.Button("Get Models", variant: ButtonVariant.Primary);
-            model = gr.Dropdown(choices: [], label: "Model Select", allowCustomValue:true);
+            model = gr.Dropdown(choices: [], label: "Model Select", allowCustomValue: true);
         }
 
         btnset?.Click(update_models, inputs: [input, token], outputs: [model]);
@@ -34,7 +34,7 @@ static async Task<Blocks> CreateBlocks()
 
         using (gr.Tab("Chat"))
         {
-            Chatbot chatBot = gr.Chatbot(label: "LLamaWorker Chat", showCopyButton: true, placeholder: "Chat history",height:520);
+            Chatbot chatBot = gr.Chatbot(label: "LLamaWorker Chat", showCopyButton: true, placeholder: "Chat history", height: 520);
             Textbox userInput = gr.Textbox(label: "Input", placeholder: "Type a message...");
 
             Button sendButton, resetButton, regenerateButton;
@@ -74,7 +74,7 @@ static async Task<Blocks> CreateBlocks()
 
         using (gr.Tab("Completion"))
         {
-            var text_Result = gr.Textbox(label: "Generation", interactive: false,lines:15);
+            var text_Result = gr.Textbox(label: "Generation", interactive: false, lines: 15);
             var text_Input = gr.Textbox(label: "Input", placeholder: "Type a message...", lines: 5);
             var button = gr.Button("Send", variant: ButtonVariant.Primary);
             button?.Click(i =>
@@ -104,7 +104,7 @@ static async Task<Output> update_models(Input input)
         Utils.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
     var res = await Utils.client.GetFromJsonAsync<ConfigModels>(server + "/models/config");
-    if (res?.Models == null || res.Models.Count==0)
+    if (res?.Models == null || res.Models.Count == 0)
     {
         throw new Exception("Failed to fetch models from the server.");
     }
@@ -228,7 +228,7 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
         Utils.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 
-    var messages =new List<ChatCompletionMessage>();
+    var messages = new List<ChatCompletionMessage>();
     foreach (var item in chatHistory)
     {
         if (!string.IsNullOrEmpty(item.HumanMessage.TextMessage))
@@ -272,7 +272,7 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
                 var data = line.Substring(5).Trim();
 
                 // 结束
-                if(data == "[DONE]")
+                if (data == "[DONE]")
                 {
                     yield break;
                 }
