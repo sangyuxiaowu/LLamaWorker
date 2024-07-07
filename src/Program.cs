@@ -22,8 +22,8 @@ namespace LLamaWorker
             builder.Services.Configure<List<LLmModelSettings>>(
                 builder.Configuration.GetSection(nameof(LLmModelSettings))
             );
-            // 自动释放配置
-            GlobalSettings.AutoReleaseTime = builder.Configuration.GetValue<int>("AutoReleaseTime");
+            // 初始化配置
+            GlobalSettings.InitializeGlobalSettings(builder.Configuration);
             // ApiKey 配置
             var apiKey = builder.Configuration.GetValue<string>("ApiKey");
 

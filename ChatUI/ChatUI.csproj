@@ -5,7 +5,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="..\src\Config\*.cs" />
+		<Compile Include="..\src\Config\LLmModelSettings.cs" />
 	</ItemGroup>
 
 </Project>
