@@ -1,22 +1,4 @@
 ﻿using System.Text;
-
-/* 项目“LLamaWorker.Backend.Cuda11”的未合并的更改
-在此之前:
-using System.Text.Json.Nodes;
-using System.Text.Json;
-在此之后:
-using System.Text.Json;
-using System.Text.Json.Nodes;
-*/
-
-/* 项目“LLamaWorker.Backend.Cuda12”的未合并的更改
-在此之前:
-using System.Text.Json.Nodes;
-using System.Text.Json;
-在此之后:
-using System.Text.Json;
-using System.Text.Json.Nodes;
-*/
 using System.Text.Json;
 
 namespace LLamaWorker.Middleware
