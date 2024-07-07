@@ -1,8 +1,8 @@
 ﻿using LLama;
 using LLama.Abstractions;
 using LLama.Common;
-using LLamaWorker.Models;
-using LLamaWorker.Models.OpenAI;
+using LLamaWorker.Config;
+using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
 using System.Text.Encodings.Web;
 using System.Text.Json;

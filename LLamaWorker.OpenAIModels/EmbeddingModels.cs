@@ -1,4 +1,4 @@
-﻿namespace LLamaWorker.Models.OpenAI
+﻿namespace LLamaWorker.OpenAIModels
 {
 
     /// <summary>

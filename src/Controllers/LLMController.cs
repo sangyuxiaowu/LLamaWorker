@@ -1,4 +1,4 @@
-﻿using LLamaWorker.Models;
+﻿using LLamaWorker.Config;
 using LLamaWorker.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;

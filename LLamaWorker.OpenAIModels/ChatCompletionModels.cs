@@ -1,6 +1,4 @@
-﻿using LLamaWorker.Models.OpenAI;
-
-namespace LLamaWorker.Models.OpenAI
+﻿namespace LLamaWorker.OpenAIModels
 {
     /// <summary>
     /// 对话完成请求

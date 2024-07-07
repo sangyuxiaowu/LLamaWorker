@@ -1,5 +1,5 @@
-﻿using LLamaWorker.Models;
-using LLamaWorker.Models.OpenAI;
+﻿using LLamaWorker.Config;
+using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
 using Timer = System.Timers.Timer;
 

@@ -13,13 +13,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{98
 		version.json = version.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker", "LLamaWorker\LLamaWorker.csproj", "{13F70548-EAB2-4B20-A2C9-7B46E4F18EE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Cpu", "LLamaWorker.Backend.Cpu\LLamaWorker.Backend.Cpu.csproj", "{13F70548-EAB2-4B20-A2C9-7B46E4F18EE0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker_Cuad11", "LLamaWorker_Cuad11\LLamaWorker_Cuad11.csproj", "{44B1A46D-4003-4F44-A60D-D425F0F0FD99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Cuda11", "LLamaWorker.Backend.Cuda11\LLamaWorker.Backend.Cuda11.csproj", "{44B1A46D-4003-4F44-A60D-D425F0F0FD99}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker_Cuad12", "LLamaWorker_Cuad12\LLamaWorker_Cuad12.csproj", "{8AA988EA-6E83-4419-8DF3-1EBFD7AEDA46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Cuda12", "LLamaWorker.Backend.Cuda12\LLamaWorker.Backend.Cuda12.csproj", "{8AA988EA-6E83-4419-8DF3-1EBFD7AEDA46}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatUI", "ChatUI\ChatUI.csproj", "{DC93E608-24D7-4D62-9EAA-37DED72BD1C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLamaWorker.OpenAIModels", "LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj", "{AD025766-1079-4EA5-94DD-AA9A96EC8173}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,10 @@ Global
 		{DC93E608-24D7-4D62-9EAA-37DED72BD1C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC93E608-24D7-4D62-9EAA-37DED72BD1C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC93E608-24D7-4D62-9EAA-37DED72BD1C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD025766-1079-4EA5-94DD-AA9A96EC8173}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD025766-1079-4EA5-94DD-AA9A96EC8173}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD025766-1079-4EA5-94DD-AA9A96EC8173}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD025766-1079-4EA5-94DD-AA9A96EC8173}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

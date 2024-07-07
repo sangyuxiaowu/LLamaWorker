@@ -1,6 +1,6 @@
 ﻿using LLama.Common;
 
-namespace LLamaWorker.Models
+namespace LLamaWorker.Config
 {
     /// <summary>
     /// 模型配置信息

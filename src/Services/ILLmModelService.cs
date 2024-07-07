@@ -1,4 +1,4 @@
-﻿using LLamaWorker.Models.OpenAI;
+﻿using LLamaWorker.OpenAIModels;
 
 namespace LLamaWorker.Services
 {

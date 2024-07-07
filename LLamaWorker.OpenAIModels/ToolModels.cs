@@ -1,4 +1,4 @@
-﻿namespace LLamaWorker.Models.OpenAI
+﻿namespace LLamaWorker.OpenAIModels
 {
     /// <summary>
     /// 推理完成令牌信息

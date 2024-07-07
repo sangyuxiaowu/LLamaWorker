@@ -1,6 +1,6 @@
 
 using LLamaWorker.Middleware;
-using LLamaWorker.Models;
+using LLamaWorker.Config;
 using LLamaWorker.Services;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -44,6 +44,9 @@ namespace LLamaWorker
 
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+                // Ìí¼ÓÄ£ÐÍ×¢ÊÍ
+                var xmlModelPath = Path.Combine(AppContext.BaseDirectory, "LLamaWorker.OpenAIModels.xml");
+                options.IncludeXmlComments(xmlModelPath);
 
                 if (string.IsNullOrEmpty(apiKey)) return;
 

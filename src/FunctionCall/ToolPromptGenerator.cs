@@ -1,4 +1,4 @@
-using LLamaWorker.Models.OpenAI;
+using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 

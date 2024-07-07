@@ -1,7 +1,7 @@
 ﻿using Gradio.Net;
 using Gradio.Net.Enums;
-using LLamaWorker.Models;
-using LLamaWorker.Models.OpenAI;
+using LLamaWorker.Config;
+using LLamaWorker.OpenAIModels;
 using System.Text;
 using System.Text.Json;
 
