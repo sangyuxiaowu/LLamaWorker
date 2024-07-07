@@ -13,6 +13,24 @@ namespace LLamaWorker.Models.OpenAI
         /// 对话历史
         /// </summary>
         public ChatCompletionMessage[] messages { get; set; } = Array.Empty<ChatCompletionMessage>();
+
+        /// <summary>
+        /// 控制模型是否调用某个工具，以及如何调用。
+        /// 可以是字符串（"none", "auto", "required"）或一个指定工具的对象。
+        /// {"type": "function", "function": {"name": "my_function"}}
+        /// 默认为"none"，表示模型不会调用任何工具，而是生成一条消息。
+        /// 如果存在工具，则默认为"auto"。
+        /// </summary>
+        /// <example>null</example>
+        public object? tool_choice { get; set; }
+
+        /// <summary>
+        /// 模型可能调用的工具列表。目前，仅支持函数作为工具。
+        /// 使用它可以提供模型可以为其生成JSON输入的函数列表。
+        /// 最多支持128个功能。
+        /// </summary>
+        /// <example>null</example>
+        public ToolInfo[]? tools { get; set; }
     }
 
     /// <summary>

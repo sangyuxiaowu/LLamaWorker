@@ -1,7 +1,6 @@
 @LLamaWorker_HostAddress = http://localhost:5114
 
 
-###
 # 测试嵌入请求
 POST {{LLamaWorker_HostAddress}}/v1/embeddings
 Content-Type: application/json
@@ -60,4 +59,77 @@ Content-Type: application/json
   "stream": true,
   "prompt": "You are a helpful assistant.Say this is a test.",
   "max_tokens": 100
+}
+
+###
+# 测试函数调用
+POST {{LLamaWorker_HostAddress}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Email to John Smith with the subject 'Meeting' and the body 'Hi John, I wanted to follow up on our meeting from last week. When are you available to meet again?'"
+    }
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "AuthorEmailPlanner-GenerateRequiredSteps",
+        "description": "返回编写电子邮件所需的必要步骤。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "topic",
+            "recipients"
+          ],
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "电子邮件内容的2-3句简要描述"
+            },
+            "recipients": {
+              "type": "string",
+              "description": "收件人的描述"
+            }
+          }
+        }
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "EmailPlugin-SendEmail",
+        "description": "向收件人发送电子邮件。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "recipientEmails",
+            "subject",
+            "body"
+          ],
+          "properties": {
+            "recipientEmails": {
+              "type": "string",
+              "description": "以分号分隔的收件人电子邮件列表"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "type": "function"
+    }
+  ],
+  "tool_choice": "auto"
 }
