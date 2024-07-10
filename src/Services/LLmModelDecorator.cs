@@ -1,4 +1,5 @@
 ﻿using LLamaWorker.Config;
+using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
 using Timer = System.Timers.Timer;
@@ -12,13 +13,15 @@ namespace LLamaWorker.Services
     {
         private readonly ILLmModelService _llmService;
         private readonly ILogger<LLmModelService> _logger;
+        private readonly ToolPromptGenerator _toolPromptGenerator;
 
         public bool IsSupportEmbedding => _llmService.IsSupportEmbedding;
 
-        public LLmModelDecorator(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
+        public LLmModelDecorator(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger, ToolPromptGenerator toolPromptGenerator)
         {
             _logger = logger;
-            _llmService = new LLmModelService(options, logger);
+            _toolPromptGenerator = toolPromptGenerator;
+            _llmService = new LLmModelService(options, logger, toolPromptGenerator);
 
             // 定时器
             if (GlobalSettings.AutoReleaseTime > 0)

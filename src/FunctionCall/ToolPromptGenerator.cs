@@ -9,39 +9,47 @@ namespace LLamaWorker.FunctionCall
     /// </summary>
     public class ToolPromptGenerator
     {
-        private readonly ToolPromptConfig _config;
+        private readonly List<ToolPromptConfig> _config;
 
-        public ToolPromptGenerator(IOptions<ToolPromptConfig> config)
+        public ToolPromptGenerator(IOptions<List<ToolPromptConfig>> config)
         {
             _config = config.Value;
         }
 
-        public string GenerateToolPrompt(ChatCompletionRequest req, string lang)
+        /// <summary>
+        /// 生成工具提示词
+        /// </summary>
+        /// <param name="req">原始对话生成请求</param>
+        /// <param name="tpl">模版序号</param>
+        /// <param name="lang">语言</param>
+        /// <returns></returns>
+        public string GenerateToolPrompt(ChatCompletionRequest req, int tpl = 0, string lang = "zh")
         {
-            if (req.tools == null || req.tools.Length == 0)
+            // 如果没有工具或者工具选择为 none，则返回空字符串
+            if (req.tools == null || req.tools.Length == 0 || (req.tool_choice != null && req.tool_choice.ToString() == "none"))
             {
                 return string.Empty;
             }
 
-            var toolDescriptions = req.tools.Select(tool => GetFunctionDescription(tool.function, lang)).ToArray();
+            var config = _config[tpl];
+
+            var toolDescriptions = req.tools.Select(tool => GetFunctionDescription(tool.function, config.ToolDescTemplate[lang])).ToArray();
             var toolNames = string.Join(",", req.tools.Select(tool => tool.function.name));
 
-            var toolDescTemplate = _config.FN_CALL_TEMPLATE_INFO[lang];
+            var toolDescTemplate = config.FN_CALL_TEMPLATE_INFO[lang];
             var toolDesc = string.Join("\n\n", toolDescriptions);
             var toolSystem = toolDescTemplate.Replace("{tool_descs}", toolDesc);
 
             var parallelFunctionCalls = req.tool_choice?.ToString() == "parallel";
-            var toolTemplate = parallelFunctionCalls ? _config.FN_CALL_TEMPLATE_FMT_PARA[lang] : _config.FN_CALL_TEMPLATE_FMT[lang];
-            var toolPrompt = string.Format(toolTemplate, _config.FN_NAME, _config.FN_ARGS, _config.FN_RESULT, _config.FN_EXIT)
+            var toolTemplate = parallelFunctionCalls ? config.FN_CALL_TEMPLATE_FMT_PARA[lang] : config.FN_CALL_TEMPLATE_FMT[lang];
+            var toolPrompt = string.Format(toolTemplate, config.FN_NAME, config.FN_ARGS, config.FN_RESULT, config.FN_EXIT)
                 .Replace("{tool_names}", toolNames);
 
             return $"{toolSystem}\n\n{toolPrompt}";
         }
 
-        private string GetFunctionDescription(FunctionInfo function, string lang)
+        private string GetFunctionDescription(FunctionInfo function, string toolDescTemplate)
         {
-            var toolDescTemplate = _config.ToolDescTemplate[lang];
-
             var nameForHuman = function.name;
             var nameForModel = function.name;
             var descriptionForModel = function.description ?? string.Empty;

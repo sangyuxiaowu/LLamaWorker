@@ -14,10 +14,12 @@
 
         /// <summary>
         /// 控制模型是否调用某个工具，以及如何调用。
-        /// 可以是字符串（"none", "auto", "required"）或一个指定工具的对象。
+        /// 可以是字符串（"none", "auto", "required", "parallel"）或一个指定工具的对象。
         /// {"type": "function", "function": {"name": "my_function"}}
         /// 默认为"none"，表示模型不会调用任何工具，而是生成一条消息。
         /// 如果存在工具，则默认为"auto"。
+        /// required，表示必须调用一个或多个工具
+        /// parallel，表示并行调用多个工具
         /// </summary>
         /// <example>null</example>
         public object? tool_choice { get; set; }

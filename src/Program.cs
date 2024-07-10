@@ -1,5 +1,6 @@
 
 using LLamaWorker.Config;
+using LLamaWorker.FunctionCall;
 using LLamaWorker.Middleware;
 using LLamaWorker.Services;
 using Microsoft.OpenApi.Models;
@@ -21,6 +22,9 @@ namespace LLamaWorker
             // ≈‰÷√∑˛ŒÒ
             builder.Services.Configure<List<LLmModelSettings>>(
                 builder.Configuration.GetSection(nameof(LLmModelSettings))
+            );
+            builder.Services.Configure<List<ToolPromptConfig>>(
+                builder.Configuration.GetSection(nameof(ToolPromptConfig))
             );
             // ≥ı ºªØ≈‰÷√
             GlobalSettings.InitializeGlobalSettings(builder.Configuration);
@@ -78,6 +82,7 @@ namespace LLamaWorker
 
 
             builder.Services.AddSingleton<ILLmModelService, LLmModelDecorator>();
+            builder.Services.AddSingleton<ToolPromptGenerator>();
 
             // øÁ”Ú≈‰÷√
             builder.Services.AddCors(options =>

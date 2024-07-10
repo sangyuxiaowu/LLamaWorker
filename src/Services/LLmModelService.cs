@@ -2,6 +2,7 @@
 using LLama.Abstractions;
 using LLama.Common;
 using LLamaWorker.Config;
+using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
 using System.Text.Encodings.Web;
@@ -19,6 +20,7 @@ namespace LLamaWorker.Services
     {
         private readonly ILogger<LLmModelService> _logger;
         private readonly List<LLmModelSettings> _settings;
+        private readonly ToolPromptGenerator _toolPromptGenerator;
         private LLmModelSettings _usedset;
         private LLamaWeights _model;
         private LLamaEmbedder? _embedder;
@@ -90,10 +92,11 @@ namespace LLamaWorker.Services
         /// </summary>
         /// <param name="options">模型配置列表</param>
         /// <param name="logger">日志</param>
-        public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger)
+        public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger, ToolPromptGenerator toolPromptGenerator)
         {
             _logger = logger;
             _settings = options.Value;
+            _toolPromptGenerator = toolPromptGenerator;
             InitModelIndex();
             if (_usedset == null || _model == null)
             {

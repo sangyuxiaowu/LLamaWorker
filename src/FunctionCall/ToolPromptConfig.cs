@@ -49,6 +49,9 @@ public class ToolPromptConfig
     /// </summary>
     public Dictionary<string, string> FN_CALL_TEMPLATE_FMT_PARA { get; set; }
 
+    // TODO: 指定工具描述模板，按语言区分
+    // TODO: 指定工具描述模板，按语言区分
+
     /// <summary>
     /// 工具描述模板，按语言区分
     /// </summary>
