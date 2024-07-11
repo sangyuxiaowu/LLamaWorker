@@ -4,7 +4,7 @@
 
 LLamaWorkerは、[LLamaSharp](https://github.com/SciSharp/LLamaSharp?wt.mc_id=DT-MVP-5005195)プロジェクトに基づいて開発されたHTTP APIサーバーです。OpenAI互換のAPIを提供し、開発者が大規模言語モデル（LLM）を自分のアプリケーションに簡単に統合できるようにします。
 
-英語 | [中文](README_CN.md)
+[英語](README.md) | [中文](README_CN.md) | 日本語
 
 ## 特徴
 
