@@ -40,6 +40,7 @@
     {
         /// <summary>
         /// 角色
+        /// system, user, assistant, tool
         /// </summary>
         /// <example>user</example>
         public string? role { get; set; } = string.Empty;

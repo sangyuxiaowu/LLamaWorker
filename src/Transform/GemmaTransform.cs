@@ -18,14 +18,4 @@
         protected override string endToken => "<end_of_turn>";
     }
 
-    /// <summary>
-    /// 处理结尾多余的输出
-    /// </summary>
-    public class GemmaTextStreamTransform
-        : BaseTextStreamTransform
-    {
-        /// <inheritdoc/>
-        protected override string startToken => "<start_of_turn>";
-    }
-
 }

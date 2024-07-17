@@ -4,7 +4,9 @@ using LLama.Common;
 using LLamaWorker.Config;
 using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
+using LLamaWorker.Transform;
 using Microsoft.Extensions.Options;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -122,33 +124,30 @@ namespace LLamaWorker.Services
         /// <returns></returns>
         public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request)
         {
-            var genParams = GetInferenceParams(request);
-            var chatHistory = GetChatHistory(request.messages);
-            var lastMessage = chatHistory.Messages.LastOrDefault();
-            var context = new LLamaContext(_model, _usedset.ModelParams);
             // 没有消息
-            if (lastMessage is null)
+            if (request.messages is null || request.messages.Length == 0)
             {
                 _logger.LogWarning("No message in chat history.");
                 return new ChatCompletionResponse();
             }
 
-            // 去除最后一条消息
-            chatHistory.Messages.RemoveAt(chatHistory.Messages.Count - 1);
+            var chatHistory = GetChatHistory(request.messages);
+            var genParams = GetInferenceParams(request);
+            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var result = new StringBuilder();
 
-            var session = GetChatSession(chatHistory, context);
-
-            var result = "";
-            await foreach (var output in session.ChatAsync(lastMessage, genParams))
+            var messagesContent = request.messages.Select(x => x.content).ToArray();
+            var prompt_context = string.Join("", messagesContent);
+            var prompt_tokens = _model.Tokenize(prompt_context, true, false, _usedset.ModelParams.Encoding).Length;
+            var completion_tokens = 0;
+            await foreach (var output in ex.InferAsync(chatHistory, genParams))
             {
                 _logger.LogDebug("Message: {output}", output);
-                result += output;
+                result.Append(output);
+                completion_tokens++;
             }
 
-            var prompt_tokens = context.Tokenize(lastMessage.Content).Length;
-            var completion_tokens = context.Tokenize(result).Length;
-
-            context.Dispose();
+            ex.Context.Dispose();
 
             return new ChatCompletionResponse
             {
@@ -163,7 +162,7 @@ namespace LLamaWorker.Services
                         message = new ChatCompletionMessage
                         {
                             role = "assistant",
-                            content = result
+                            content = result.ToString()
                         }
                     }
                 ],
@@ -183,22 +182,16 @@ namespace LLamaWorker.Services
         /// <returns></returns>
         public async IAsyncEnumerable<string> CreateChatCompletionStreamAsync(ChatCompletionRequest request)
         {
-            var genParams = GetInferenceParams(request);
-            var chatHistory = GetChatHistory(request.messages);
-            var lastMessage = chatHistory.Messages.LastOrDefault();
-            var context = new LLamaContext(_model, _usedset.ModelParams);
-
             // 没有消息
-            if (lastMessage is null)
+            if (request.messages is null || request.messages.Length == 0)
             {
                 _logger.LogWarning("No message in chat history.");
                 yield break;
             }
 
-            // 去除最后一条消息
-            chatHistory.Messages.RemoveAt(chatHistory.Messages.Count - 1);
-
-            var session = GetChatSession(chatHistory, context);
+            var chatHistory = GetChatHistory(request.messages);
+            var genParams = GetInferenceParams(request);
+            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
 
             var id = $"chatcmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -226,7 +219,7 @@ namespace LLamaWorker.Services
             yield return $"data: {chunk}\n\n";
 
             // 处理模型输出
-            await foreach (var output in session.ChatAsync(lastMessage, genParams))
+            await foreach (var output in ex.InferAsync(chatHistory, genParams))
             {
                 _logger.LogDebug("Message: {output}", output);
                 chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
@@ -251,7 +244,7 @@ namespace LLamaWorker.Services
                 yield return $"data: {chunk}\n\n";
             }
 
-            context.Dispose();
+            ex.Context.Dispose();
 
             // 结束
             chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
@@ -275,94 +268,41 @@ namespace LLamaWorker.Services
 
 
         /// <summary>
-        /// 生成并配置对话会话
+        /// 生成对话历史
         /// </summary>
-        /// <param name="chatHistory">历史对话</param>
-        /// <param name="context"></param>
+        /// <param name="messages">对话历史</param>
         /// <returns></returns>
-        private ChatSession GetChatSession(ChatHistory chatHistory, LLamaContext context)
+        private string GetChatHistory(ChatCompletionMessage[] messages)
         {
-            var executor = new InteractiveExecutor(context);
-            ChatSession session = new(executor, chatHistory);
 
-            // 设置历史转换器和输出转换器
+            // 添加系统提示
+            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role!="system")
+            {
+                _logger.LogInformation("Add system prompt.");
+                messages = messages.Prepend(new ChatCompletionMessage
+                {
+                    role = "system",
+                    content = _usedset.SystemPrompt
+                }).ToArray();
+            }
+
+            // 使用对话模版
+            var history = "";
             if (_usedset.WithTransform?.HistoryTransform != null)
             {
                 var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
                 if (type != null)
                 {
-                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
+                    var historyTransform = Activator.CreateInstance(type) as ITemplateTransform;
                     if (historyTransform != null)
                     {
-                        session.WithHistoryTransform(historyTransform);
+                        history = historyTransform.HistoryToText(messages);
                     }
                 }
             }
-            if (_usedset.WithTransform?.OutputTransform != null)
+            else
             {
-                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
-                if (type != null)
-                {
-                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
-                    if (outputTransform != null)
-                    {
-                        session.WithOutputTransform(outputTransform);
-                    }
-                }
-            }
-
-            return session;
-        }
-
-
-        /// <summary>
-        /// 生成对话历史
-        /// </summary>
-        /// <param name="messages">对话历史</param>
-        /// <returns></returns>
-        private ChatHistory GetChatHistory(ChatCompletionMessage[] messages)
-        {
-            bool isSystem = false;
-            var history = new ChatHistory();
-            foreach (var message in messages)
-            {
-                var role = message.role;
-                if (role == "system")
-                {
-                    if (isSystem)
-                    {
-                        _logger.LogWarning("Continuous system messages.");
-                        continue;
-                    }
-                    isSystem = true;
-                    history.AddMessage(AuthorRole.System, message.content);
-                }
-                else if (role == "user")
-                {
-                    history.AddMessage(AuthorRole.User, message.content);
-                }
-                else if (role == "assistant")
-                {
-                    history.AddMessage(AuthorRole.Assistant, message.content);
-                }
-                else
-                {
-                    _logger.LogWarning("Unknown role: {role}.", role);
-                    continue;
-                }
-            }
-
-            // 添加系统提示
-            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && !isSystem)
-            {
-                _logger.LogInformation("Add system prompt.");
-                history.Messages.Insert(0, new ChatHistory.Message(AuthorRole.System, _usedset.SystemPrompt));
-            }
-
-            // LLamaSharp 限制最后一个消息为用户消息
-            if (history.Messages.Count > 0 && history.Messages.LastOrDefault()!.AuthorRole != AuthorRole.User)
-            {
-                history.Messages.Add(new ChatHistory.Message(AuthorRole.User, " "));
+                history = new BaseHistoryTransform().HistoryToText(messages);
             }
 
             return history;
@@ -419,16 +359,18 @@ namespace LLamaWorker.Services
             }
             var genParams = GetInferenceParams(request);
             var ex = new StatelessExecutor(_model, _usedset.ModelParams);
-            var result = "";
+            var result = new StringBuilder();
 
             var prompt_tokens = _model.Tokenize(request.prompt, true, false, _usedset.ModelParams.Encoding).Length;
             var completion_tokens = 0;
             await foreach (var output in ex.InferAsync(request.prompt, genParams))
             {
                 _logger.LogDebug("Message: {output}", output);
-                result += output;
+                result.Append(output);
                 completion_tokens++;
             }
+
+            ex.Context.Dispose();
 
             return new CompletionResponse
             {
@@ -440,7 +382,7 @@ namespace LLamaWorker.Services
                     new CompletionResponseChoice
                     {
                         index = 0,
-                        text = result
+                        text = result.ToString()
                     }
                 },
                 usage = new UsageInfo
@@ -505,6 +447,9 @@ namespace LLamaWorker.Services
                 }, _jsonSerializerOptions);
                 yield return $"data: {chunk}\n\n";
             }
+
+            ex.Context.Dispose();
+
             chunk = JsonSerializer.Serialize(new CompletionResponse
             {
                 id = id,
