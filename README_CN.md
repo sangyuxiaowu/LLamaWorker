@@ -30,7 +30,8 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 3. 根据您的需求选择项目文件。项目提供了三个版本的项目文件：
    - `LLamaWorker.Backend.Cpu`：适用于 CPU 环境。
    - `LLamaWorker.Backend.Cuda11`：适用于搭载 CUDA 11 的 GPU 环境。
-   - `LLamaWorker.Backend.Cuda12`：适用于搭载 CUDA 12 的 GPU 环境。
+   - `LLamaWorker.Backend.Cuda12`：适用于搭载 CUDA 12 的 GPU 环境。                                                                                                      
+   - `LLamaWorker.Backend.Vulkan`：Vulkan 方案。
    
    选择适合您环境的项目文件进行下一步。
    
