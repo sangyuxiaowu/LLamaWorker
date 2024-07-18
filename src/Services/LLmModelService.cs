@@ -133,12 +133,11 @@ namespace LLamaWorker.Services
 
             var chatHistory = GetChatHistory(request.messages);
             var genParams = GetInferenceParams(request);
-            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
             var result = new StringBuilder();
 
             var messagesContent = request.messages.Select(x => x.content).ToArray();
             var prompt_context = string.Join("", messagesContent);
-            var prompt_tokens = _model.Tokenize(prompt_context, true, false, _usedset.ModelParams.Encoding).Length;
             var completion_tokens = 0;
             await foreach (var output in ex.InferAsync(chatHistory, genParams))
             {
@@ -146,8 +145,7 @@ namespace LLamaWorker.Services
                 result.Append(output);
                 completion_tokens++;
             }
-
-            ex.Context.Dispose();
+            var prompt_tokens = ex.PromptTokens;
 
             return new ChatCompletionResponse
             {
@@ -191,7 +189,7 @@ namespace LLamaWorker.Services
 
             var chatHistory = GetChatHistory(request.messages);
             var genParams = GetInferenceParams(request);
-            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
 
             var id = $"chatcmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -243,8 +241,6 @@ namespace LLamaWorker.Services
                 }, _jsonSerializerOptions);
                 yield return $"data: {chunk}\n\n";
             }
-
-            ex.Context.Dispose();
 
             // 结束
             chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
@@ -358,10 +354,9 @@ namespace LLamaWorker.Services
                 return new CompletionResponse();
             }
             var genParams = GetInferenceParams(request);
-            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
             var result = new StringBuilder();
 
-            var prompt_tokens = _model.Tokenize(request.prompt, true, false, _usedset.ModelParams.Encoding).Length;
             var completion_tokens = 0;
             await foreach (var output in ex.InferAsync(request.prompt, genParams))
             {
@@ -369,8 +364,7 @@ namespace LLamaWorker.Services
                 result.Append(output);
                 completion_tokens++;
             }
-
-            ex.Context.Dispose();
+            var prompt_tokens = ex.PromptTokens;
 
             return new CompletionResponse
             {
@@ -407,7 +401,7 @@ namespace LLamaWorker.Services
                 yield break;
             }
             var genParams = GetInferenceParams(request);
-            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
             var id = $"cmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
             int index = 0;
@@ -447,8 +441,6 @@ namespace LLamaWorker.Services
                 }, _jsonSerializerOptions);
                 yield return $"data: {chunk}\n\n";
             }
-
-            ex.Context.Dispose();
 
             chunk = JsonSerializer.Serialize(new CompletionResponse
             {
