@@ -56,7 +56,7 @@ namespace LLama
         {
             // Create an inference context which will be disposed when this method exits
             using var context = _weights.CreateContext(_params, _logger);
-
+            Context = context;
             // Reset the sampling pipeline (if there is one)
             inferenceParams?.SamplingPipeline?.Reset();
 

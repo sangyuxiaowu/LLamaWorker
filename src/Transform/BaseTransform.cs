@@ -34,8 +34,9 @@ namespace LLamaWorker.Transform
         /// 历史记录转换为文本
         /// </summary>
         /// <param name="history"></param>
+        /// <param name="toolPrompt"></param>
         /// <returns></returns>
-        public virtual string HistoryToText(ChatCompletionMessage[] history)
+        public virtual string HistoryToText(ChatCompletionMessage[] history, string toolPrompt="")
         {
 
             // 若有系统消息，则会放在最开始
@@ -55,11 +56,11 @@ namespace LLamaWorker.Transform
                     // 模型不支持系统消息角色设定
                     if (string.IsNullOrWhiteSpace(systemToken))
                     {
-                        systemMessage = $"{message.content} ";
+                        systemMessage = $"{message.content} {toolPrompt}";
                     }
                     else
                     {
-                        sb.AppendLine($"{systemToken}\n{message.content}{endToken}");
+                        sb.AppendLine($"{systemToken}\n{message.content}{toolPrompt}{endToken}");
                     }
                 }
                 else if (message.role == "assistant")

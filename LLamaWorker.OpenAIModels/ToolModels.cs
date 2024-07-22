@@ -1,4 +1,6 @@
-﻿namespace LLamaWorker.OpenAIModels
+﻿using System.Text.Json.Serialization;
+
+namespace LLamaWorker.OpenAIModels
 {
     /// <summary>
     /// 推理完成令牌信息
@@ -29,11 +31,13 @@
         /// <summary>
         /// 函数作用的描述，由模型用来选择何时以及如何调用函数。
         /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? description { get; set; }
 
         /// <summary>
         /// 函数接受的参数，描述为JSON模式对象。
         /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Parameters? parameters { get; set; }
     }
 
@@ -56,6 +60,7 @@
         /// <summary>
         /// 必需的参数名称列表。
         /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? required { get; set; }
     }
 
@@ -72,11 +77,13 @@
         /// <summary>
         /// 参数的描述
         /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? description { get; set; }
 
         /// <summary>
         /// 参数的可选值
         /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? @enum { get; set; }
     }
 
