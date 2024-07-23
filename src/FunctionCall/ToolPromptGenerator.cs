@@ -1,32 +1,34 @@
-using LLamaWorker.OpenAIModels;
+ï»¿using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Text.Unicode;
 
 namespace LLamaWorker.FunctionCall
 {
     /// <summary>
-    /// »ù´¡¹¤¾ßÌáÊ¾Éú³ÉÆ÷
+    /// åŸºç¡€å·¥å…·æç¤ºç”Ÿæˆå™¨
     /// </summary>
     public class ToolPromptGenerator
     {
         private readonly List<ToolPromptConfig> _config;
 
-
+        private readonly string[] _nullWords = new string[] { "null", "{}", "[]" };
         /// <summary>
-        /// »ù´¡¹¤¾ßÌáÊ¾Éú³ÉÆ÷
+        /// åŸºç¡€å·¥å…·æç¤ºç”Ÿæˆå™¨
         /// </summary>
-        /// <param name="config">¹¤¾ßÅäÖÃĞÅÏ¢</param>
+        /// <param name="config">å·¥å…·é…ç½®ä¿¡æ¯</param>
         public ToolPromptGenerator(IOptions<List<ToolPromptConfig>> config)
         {
             _config = config.Value;
         }
 
         /// <summary>
-        /// »ñÈ¡¹¤¾ßÍ£ÓÃ´Ê
+        /// è·å–å·¥å…·åœç”¨è¯
         /// </summary>
-        /// <param name="tpl">Ä£°æĞòºÅ</param>
+        /// <param name="tpl">æ¨¡ç‰ˆåºå·</param>
         /// <returns></returns>
         public string[] GetToolStopWords(int tpl = 0)
         {
@@ -34,15 +36,72 @@ namespace LLamaWorker.FunctionCall
         }
 
         /// <summary>
-        /// Éú³É¹¤¾ßÌáÊ¾´Ê
+        /// è·å–å·¥å…·æç¤ºé…ç½®
         /// </summary>
-        /// <param name="req">Ô­Ê¼¶Ô»°Éú³ÉÇëÇó</param>
-        /// <param name="tpl">Ä£°æĞòºÅ</param>
-        /// <param name="lang">ÓïÑÔ</param>
+        /// <param name="tpl">æ¨¡ç‰ˆåºå·</param>
+        /// <returns></returns>
+        public ToolPromptConfig GetToolPromptConfig(int tpl = 0)
+        {
+            return _config[tpl];
+        }
+
+        /// <summary>
+        /// æ£€æŸ¥å¹¶ç”Ÿæˆå·¥å…·è°ƒç”¨
+        /// </summary>
+        /// <param name="input">æ¨ç†è¾“å‡º</param>
+        /// <param name="tpl">æ¨¡ç‰ˆåºå·</param>
+        /// <returns></returns>
+        public List<ToolMeaasgeFuntion> GenerateToolCall(string input, int tpl = 0)
+        {
+            /* TODO:
+             * ç‰¹æ®Šåœæ­¢ç¬¦æœªç”Ÿæ•ˆ
+             * è¾“å…¥çš„å‚æ•°åç§°å¼‚å¸¸
+             * ID çŸ­ID
+            "tool_calls": [
+              {
+                "id": "call_7f18cdab2b614abbbd04bc54cce2aea0",
+                "type": "function",
+                "function": {
+                  "name": "EmailPlugin-SendEmail",
+                  "arguments": "{\"recipientEmails\": \"John_Smith@example.com\", \"subject\": \"Meeting\", \"body\": \"Hi John, I wanted to follow up on our meeting from last week. When are you available to meet again?\"}\nâœ¿RESULTâœ¿"
+                }
+              }
+            
+            */
+
+
+            string pattern = @$"{_config[tpl].FN_NAME}:? (.*?)\s*({_config[tpl].FN_ARGS}:? (.*?)\s*)(?={_config[tpl].FN_NAME}|$)";
+            Regex regex = new Regex(pattern, RegexOptions.Singleline);
+            MatchCollection matches = regex.Matches(input);
+            List<ToolMeaasgeFuntion> results = new();
+            foreach (Match match in matches)
+            {
+                string functionName = match.Groups[1].Value;
+                string arguments = match.Groups[3].Success ? match.Groups[3].Value : "";
+                if (string.IsNullOrWhiteSpace(arguments) || _nullWords.Contains(arguments))
+                {
+                    arguments = null;
+                }
+                results.Add(new ToolMeaasgeFuntion
+                {
+                    name = functionName,
+                    arguments = arguments,
+                });
+            }
+            return results;
+        }
+
+
+        /// <summary>
+        /// ç”Ÿæˆå·¥å…·æç¤ºè¯
+        /// </summary>
+        /// <param name="req">åŸå§‹å¯¹è¯ç”Ÿæˆè¯·æ±‚</param>
+        /// <param name="tpl">æ¨¡ç‰ˆåºå·</param>
+        /// <param name="lang">è¯­è¨€</param>
         /// <returns></returns>
         public string GenerateToolPrompt(ChatCompletionRequest req, int tpl = 0, string lang = "zh")
         {
-            // Èç¹ûÃ»ÓĞ¹¤¾ß»òÕß¹¤¾ßÑ¡ÔñÎª none£¬Ôò·µ»Ø¿Õ×Ö·û´®
+            // å¦‚æœæ²¡æœ‰å·¥å…·æˆ–è€…å·¥å…·é€‰æ‹©ä¸º noneï¼Œåˆ™è¿”å›ç©ºå­—ç¬¦ä¸²
             if (req.tools == null || req.tools.Length == 0 || (req.tool_choice != null && req.tool_choice.ToString() == "none"))
             {
                 return string.Empty;

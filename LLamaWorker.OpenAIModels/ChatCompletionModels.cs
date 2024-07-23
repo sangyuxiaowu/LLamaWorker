@@ -48,7 +48,13 @@
         /// 对话内容
         /// </summary>
         /// <example>你好</example>
-        public string content { get; set; } = string.Empty;
+        public string? content { get; set; }
+
+        /// <summary>
+        /// 工具调用信息
+        /// </summary>
+        /// <example>null</example>
+        public ToolMeaasge[]? tool_calls { get; set; }
     }
 
     /// <summary>

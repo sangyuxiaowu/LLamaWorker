@@ -147,6 +147,47 @@ namespace LLamaWorker.Services
             }
             var prompt_tokens = ex.PromptTokens;
 
+            // 工具返回检测
+            if (chatHistory.IsToolPromptEnabled)
+            {
+                var tools = _toolPromptGenerator.GenerateToolCall(result.ToString(), GlobalSettings.CurrentToolPromptIndex);
+                if (tools.Count > 0)
+                {
+                    return new ChatCompletionResponse
+                    {
+                        id = $"chatcmpl-{Guid.NewGuid():N}",
+                        model = request.model,
+                        created = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                        choices = [
+                            new ChatCompletionResponseChoice
+                            {
+                                index = 0,
+                                finish_reason = "tool_calls",
+                                message = new ChatCompletionMessage
+                                {
+                                    role = "assistant",
+                                    tool_calls = tools.Select(x => new ToolMeaasge
+                                    {
+                                        id = $"call_{Guid.NewGuid():N}",
+                                        function = new ToolMeaasgeFuntion
+                                        {
+                                            name = x.name,
+                                            arguments = x.arguments
+                                        }
+                                    }).ToArray()
+                                }
+                            }
+                        ],
+                        usage = new UsageInfo
+                        {
+                            prompt_tokens = prompt_tokens,
+                            completion_tokens = completion_tokens,
+                            total_tokens = prompt_tokens + completion_tokens
+                        }
+                    };
+                }
+            }
+
             return new ChatCompletionResponse
             {
                 id = $"chatcmpl-{Guid.NewGuid():N}",
