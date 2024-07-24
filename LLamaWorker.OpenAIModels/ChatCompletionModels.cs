@@ -55,6 +55,13 @@
         /// </summary>
         /// <example>null</example>
         public ToolMeaasge[]? tool_calls { get; set; }
+
+        /// <summary>
+        /// 调用工具的 ID
+        /// role 为 tool 时必填
+        /// </summary>
+        /// <example>null</example>
+        public string? tool_call_id { get; set; }
     }
 
     /// <summary>
