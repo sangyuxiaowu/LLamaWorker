@@ -53,24 +53,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public List<ToolMeaasgeFuntion> GenerateToolCall(string input, int tpl = 0)
         {
-            /* TODO:
-             * 特殊停止符未生效
-             * 输入的参数名称异常
-             * ID 短ID
-            "tool_calls": [
-              {
-                "id": "call_7f18cdab2b614abbbd04bc54cce2aea0",
-                "type": "function",
-                "function": {
-                  "name": "EmailPlugin-SendEmail",
-                  "arguments": "{\"recipientEmails\": \"John_Smith@example.com\", \"subject\": \"Meeting\", \"body\": \"Hi John, I wanted to follow up on our meeting from last week. When are you available to meet again?\"}\n✿RESULT✿"
-                }
-              }
-            
-            */
-
-
-            string pattern = @$"{_config[tpl].FN_NAME}:? (.*?)\s*({_config[tpl].FN_ARGS}:? (.*?)\s*)(?={_config[tpl].FN_NAME}|$)";
+            string pattern = @$"{_config[tpl].FN_NAME}:? (.*?)\s*({_config[tpl].FN_ARGS}:? (.*?)\s*)(?={_config[tpl].FN_NAME}|$|\n)";
             Regex regex = new Regex(pattern, RegexOptions.Singleline);
             MatchCollection matches = regex.Matches(input);
             List<ToolMeaasgeFuntion> results = new();
@@ -127,7 +110,7 @@ namespace LLamaWorker.FunctionCall
             var nameForHuman = function.name;
             var nameForModel = function.name;
             var descriptionForModel = function.description ?? string.Empty;
-            var parameters = JsonSerializer.Serialize(function.parameters, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
+            var parameters = JsonSerializer.Serialize(function.parameters, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
 
             return string.Format(toolDescTemplate, nameForHuman, nameForModel, descriptionForModel, parameters).Trim();
         }
