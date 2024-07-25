@@ -18,14 +18,4 @@
         protected override string endToken => "<|end|>";
     }
 
-    /// <summary>
-    /// 处理结尾多余的输出
-    /// </summary>
-    public class ZephyrTextStreamTransform
-        : BaseTextStreamTransform
-    {
-        /// <inheritdoc/>
-        protected override string startToken => "<|end|>";
-    }
-
 }

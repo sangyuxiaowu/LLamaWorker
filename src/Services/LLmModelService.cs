@@ -4,7 +4,9 @@ using LLama.Common;
 using LLamaWorker.Config;
 using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
+using LLamaWorker.Transform;
 using Microsoft.Extensions.Options;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -122,33 +124,69 @@ namespace LLamaWorker.Services
         /// <returns></returns>
         public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request)
         {
-            var genParams = GetInferenceParams(request);
-            var chatHistory = GetChatHistory(request.messages);
-            var lastMessage = chatHistory.Messages.LastOrDefault();
-            var context = new LLamaContext(_model, _usedset.ModelParams);
             // 没有消息
-            if (lastMessage is null)
+            if (request.messages is null || request.messages.Length == 0)
             {
                 _logger.LogWarning("No message in chat history.");
                 return new ChatCompletionResponse();
             }
 
-            // 去除最后一条消息
-            chatHistory.Messages.RemoveAt(chatHistory.Messages.Count - 1);
+            var chatHistory = GetChatHistory(request);
+            var genParams = GetInferenceParams(request, chatHistory.ToolStopWords);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
+            var result = new StringBuilder();
 
-            var session = GetChatSession(chatHistory, context);
-
-            var result = "";
-            await foreach (var output in session.ChatAsync(lastMessage, genParams))
+            var messagesContent = request.messages.Select(x => x.content).ToArray();
+            var prompt_context = string.Join("", messagesContent);
+            var completion_tokens = 0;
+            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams))
             {
                 _logger.LogDebug("Message: {output}", output);
-                result += output;
+                result.Append(output);
+                completion_tokens++;
             }
+            var prompt_tokens = ex.PromptTokens;
 
-            var prompt_tokens = context.Tokenize(lastMessage.Content).Length;
-            var completion_tokens = context.Tokenize(result).Length;
-
-            context.Dispose();
+            // 工具返回检测
+            if (chatHistory.IsToolPromptEnabled)
+            {
+                var tools = _toolPromptGenerator.GenerateToolCall(result.ToString(), GlobalSettings.CurrentToolPromptIndex);
+                if (tools.Count > 0)
+                {
+                    return new ChatCompletionResponse
+                    {
+                        id = $"chatcmpl-{Guid.NewGuid():N}",
+                        model = request.model,
+                        created = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                        choices = [
+                            new ChatCompletionResponseChoice
+                            {
+                                index = 0,
+                                finish_reason = "tool_calls",
+                                message = new ChatCompletionMessage
+                                {
+                                    role = "assistant",
+                                    tool_calls = tools.Select(x => new ToolMeaasge
+                                    {
+                                        id = $"call_{Guid.NewGuid():N}",
+                                        function = new ToolMeaasgeFuntion
+                                        {
+                                            name = x.name,
+                                            arguments = x.arguments
+                                        }
+                                    }).ToArray()
+                                }
+                            }
+                        ],
+                        usage = new UsageInfo
+                        {
+                            prompt_tokens = prompt_tokens,
+                            completion_tokens = completion_tokens,
+                            total_tokens = prompt_tokens + completion_tokens
+                        }
+                    };
+                }
+            }
 
             return new ChatCompletionResponse
             {
@@ -163,7 +201,7 @@ namespace LLamaWorker.Services
                         message = new ChatCompletionMessage
                         {
                             role = "assistant",
-                            content = result
+                            content = result.ToString()
                         }
                     }
                 ],
@@ -183,22 +221,16 @@ namespace LLamaWorker.Services
         /// <returns></returns>
         public async IAsyncEnumerable<string> CreateChatCompletionStreamAsync(ChatCompletionRequest request)
         {
-            var genParams = GetInferenceParams(request);
-            var chatHistory = GetChatHistory(request.messages);
-            var lastMessage = chatHistory.Messages.LastOrDefault();
-            var context = new LLamaContext(_model, _usedset.ModelParams);
-
             // 没有消息
-            if (lastMessage is null)
+            if (request.messages is null || request.messages.Length == 0)
             {
                 _logger.LogWarning("No message in chat history.");
                 yield break;
             }
 
-            // 去除最后一条消息
-            chatHistory.Messages.RemoveAt(chatHistory.Messages.Count - 1);
-
-            var session = GetChatSession(chatHistory, context);
+            var chatHistory = GetChatHistory(request);
+            var genParams = GetInferenceParams(request, chatHistory.ToolStopWords);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
 
             var id = $"chatcmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -226,7 +258,7 @@ namespace LLamaWorker.Services
             yield return $"data: {chunk}\n\n";
 
             // 处理模型输出
-            await foreach (var output in session.ChatAsync(lastMessage, genParams))
+            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams))
             {
                 _logger.LogDebug("Message: {output}", output);
                 chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
@@ -251,8 +283,6 @@ namespace LLamaWorker.Services
                 yield return $"data: {chunk}\n\n";
             }
 
-            context.Dispose();
-
             // 结束
             chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
             {
@@ -275,97 +305,50 @@ namespace LLamaWorker.Services
 
 
         /// <summary>
-        /// 生成并配置对话会话
+        /// 生成对话历史
         /// </summary>
-        /// <param name="chatHistory">历史对话</param>
-        /// <param name="context"></param>
+        /// <param name="request">请求信息</param>
         /// <returns></returns>
-        private ChatSession GetChatSession(ChatHistory chatHistory, LLamaContext context)
+        private ChatHistoryResult GetChatHistory(ChatCompletionRequest request)
         {
-            var executor = new InteractiveExecutor(context);
-            ChatSession session = new(executor, chatHistory);
+            // 生成工具提示
+            var toolPrompt = _toolPromptGenerator.GenerateToolPrompt(request, GlobalSettings.CurrentToolPromptIndex, GlobalSettings.CurrentToolPromptLang);
+            var toolenabled = !string.IsNullOrWhiteSpace(toolPrompt);
+            var toolstopwords = toolenabled ? _toolPromptGenerator.GetToolStopWords(GlobalSettings.CurrentToolPromptIndex) : null;
 
-            // 设置历史转换器和输出转换器
+            var messages = request.messages;
+
+            // 添加系统提示
+            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role!="system")
+            {
+                _logger.LogInformation("Add system prompt.");
+                messages = messages.Prepend(new ChatCompletionMessage
+                {
+                    role = "system",
+                    content = _usedset.SystemPrompt
+                }).ToArray();
+            }
+
+            // 使用对话模版
+            var history = "";
             if (_usedset.WithTransform?.HistoryTransform != null)
             {
                 var type = Type.GetType(_usedset.WithTransform.HistoryTransform);
                 if (type != null)
                 {
-                    var historyTransform = Activator.CreateInstance(type) as IHistoryTransform;
+                    var historyTransform = Activator.CreateInstance(type) as ITemplateTransform;
                     if (historyTransform != null)
                     {
-                        session.WithHistoryTransform(historyTransform);
+                        history = historyTransform.HistoryToText(messages, _toolPromptGenerator, toolPrompt);
                     }
                 }
             }
-            if (_usedset.WithTransform?.OutputTransform != null)
+            else
             {
-                var type = Type.GetType(_usedset.WithTransform.OutputTransform);
-                if (type != null)
-                {
-                    var outputTransform = Activator.CreateInstance(type) as ITextStreamTransform;
-                    if (outputTransform != null)
-                    {
-                        session.WithOutputTransform(outputTransform);
-                    }
-                }
+                history = new BaseHistoryTransform().HistoryToText(messages, _toolPromptGenerator, toolPrompt);
             }
 
-            return session;
-        }
-
-
-        /// <summary>
-        /// 生成对话历史
-        /// </summary>
-        /// <param name="messages">对话历史</param>
-        /// <returns></returns>
-        private ChatHistory GetChatHistory(ChatCompletionMessage[] messages)
-        {
-            bool isSystem = false;
-            var history = new ChatHistory();
-            foreach (var message in messages)
-            {
-                var role = message.role;
-                if (role == "system")
-                {
-                    if (isSystem)
-                    {
-                        _logger.LogWarning("Continuous system messages.");
-                        continue;
-                    }
-                    isSystem = true;
-                    history.AddMessage(AuthorRole.System, message.content);
-                }
-                else if (role == "user")
-                {
-                    history.AddMessage(AuthorRole.User, message.content);
-                }
-                else if (role == "assistant")
-                {
-                    history.AddMessage(AuthorRole.Assistant, message.content);
-                }
-                else
-                {
-                    _logger.LogWarning("Unknown role: {role}.", role);
-                    continue;
-                }
-            }
-
-            // 添加系统提示
-            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && !isSystem)
-            {
-                _logger.LogInformation("Add system prompt.");
-                history.Messages.Insert(0, new ChatHistory.Message(AuthorRole.System, _usedset.SystemPrompt));
-            }
-
-            // LLamaSharp 限制最后一个消息为用户消息
-            if (history.Messages.Count > 0 && history.Messages.LastOrDefault()!.AuthorRole != AuthorRole.User)
-            {
-                history.Messages.Add(new ChatHistory.Message(AuthorRole.User, " "));
-            }
-
-            return history;
+            return new ChatHistoryResult(history, toolenabled, toolstopwords);
         }
 
         #endregion
@@ -417,18 +400,18 @@ namespace LLamaWorker.Services
                 _logger.LogWarning("No prompt.");
                 return new CompletionResponse();
             }
-            var genParams = GetInferenceParams(request);
-            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
-            var result = "";
+            var genParams = GetInferenceParams(request, null);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
+            var result = new StringBuilder();
 
-            var prompt_tokens = _model.Tokenize(request.prompt, true, false, _usedset.ModelParams.Encoding).Length;
             var completion_tokens = 0;
             await foreach (var output in ex.InferAsync(request.prompt, genParams))
             {
                 _logger.LogDebug("Message: {output}", output);
-                result += output;
+                result.Append(output);
                 completion_tokens++;
             }
+            var prompt_tokens = ex.PromptTokens;
 
             return new CompletionResponse
             {
@@ -440,7 +423,7 @@ namespace LLamaWorker.Services
                     new CompletionResponseChoice
                     {
                         index = 0,
-                        text = result
+                        text = result.ToString()
                     }
                 },
                 usage = new UsageInfo
@@ -464,8 +447,8 @@ namespace LLamaWorker.Services
                 _logger.LogWarning("No prompt.");
                 yield break;
             }
-            var genParams = GetInferenceParams(request);
-            var ex = new StatelessExecutor(_model, _usedset.ModelParams);
+            var genParams = GetInferenceParams(request, null);
+            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
             var id = $"cmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
             int index = 0;
@@ -505,6 +488,7 @@ namespace LLamaWorker.Services
                 }, _jsonSerializerOptions);
                 yield return $"data: {chunk}\n\n";
             }
+
             chunk = JsonSerializer.Serialize(new CompletionResponse
             {
                 id = id,
@@ -532,8 +516,9 @@ namespace LLamaWorker.Services
         /// 生成推理参数
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="toolstopwords"></param>
         /// <returns></returns>
-        private InferenceParams GetInferenceParams(BaseCompletionRequest request)
+        private InferenceParams GetInferenceParams(BaseCompletionRequest request, string[]? toolstopwords)
         {
             var stop = new List<string>();
             if (request.stop != null)
@@ -543,6 +528,10 @@ namespace LLamaWorker.Services
             if (_usedset.AntiPrompts?.Length > 0)
             {
                 stop.AddRange(_usedset.AntiPrompts);
+            }
+            if (toolstopwords?.Length > 0)
+            {
+                stop.AddRange(toolstopwords);
             }
             if (stop.Count > 0)
             {

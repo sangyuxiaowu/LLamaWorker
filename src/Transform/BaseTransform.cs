@@ -1,5 +1,8 @@
 ﻿using LLama.Abstractions;
 using LLama.Common;
+using LLamaWorker.Config;
+using LLamaWorker.FunctionCall;
+using LLamaWorker.OpenAIModels;
 using System.Text;
 
 namespace LLamaWorker.Transform
@@ -7,7 +10,7 @@ namespace LLamaWorker.Transform
     /// <summary>
     /// ChatML 历史记录转换
     /// </summary>
-    public class BaseHistoryTransform : IHistoryTransform
+    public class BaseHistoryTransform: ITemplateTransform
     {
         /// <summary>
         /// 用户标记
@@ -29,18 +32,18 @@ namespace LLamaWorker.Transform
         /// </summary>
         protected virtual string endToken => "<|im_end|>";
 
-
-        IHistoryTransform IHistoryTransform.Clone()
-        {
-            return new BaseHistoryTransform();
-        }
+        /// <summary>
+        /// 记录 function 的调用信息
+        /// </summary>
+        private Dictionary<string, string> functionCalls = new Dictionary<string, string>();
 
         /// <summary>
         /// 历史记录转换为文本
         /// </summary>
         /// <param name="history"></param>
+        /// <param name="toolPrompt"></param>
         /// <returns></returns>
-        public virtual string HistoryToText(ChatHistory history)
+        public virtual string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, string toolPrompt="")
         {
 
             // 若有系统消息，则会放在最开始
@@ -48,115 +51,116 @@ namespace LLamaWorker.Transform
             var systemMessage = "";
 
             StringBuilder sb = new();
-            foreach (var message in history.Messages)
+
+            // 是否等待工具调用
+            bool toolWait = false;
+            // 防止重复添加系统消息
+            bool systemAdd = false;
+            foreach (var message in history)
             {
-                if (message.AuthorRole == AuthorRole.User)
+
+                if (message.role == "user")
                 {
-                    sb.AppendLine($"{userToken}\n{systemMessage}{message.Content}{endToken}");
+                    if (toolWait)
+                    {
+                        // 此处处理异常，工具激活，但是后面没有工具调用反馈
+                        functionCalls.Clear();
+                        toolWait = false;
+                        sb.AppendLine(endToken);
+                    }
+                    sb.AppendLine($"{userToken}\n{systemMessage}{message.content}{endToken}");
                     systemMessage = "";
                 }
-                else if (message.AuthorRole == AuthorRole.System)
+                else if (message.role == "system")
                 {
+                    if (systemAdd || toolWait) continue;
+                    systemAdd = true;
                     // 模型不支持系统消息角色设定
                     if (string.IsNullOrWhiteSpace(systemToken))
                     {
-                        systemMessage = $"{message.Content} ";
+                        systemMessage = $"{message.content} {toolPrompt}";
                     }
                     else
                     {
-                        sb.AppendLine($"{systemToken}\n{message.Content}{endToken}");
+                        sb.AppendLine($"{systemToken}\n{message.content}{toolPrompt}{endToken}");
                     }
                 }
-                else if (message.AuthorRole == AuthorRole.Assistant)
+                else if (message.role == "assistant")
                 {
-                    sb.AppendLine($"{assistantToken}\n{message.Content}{endToken}");
+                    // 工具调用后的助理消息
+                    if (toolWait)
+                    {
+                        // 保存工具调用结果
+                        if (functionCalls.Count > 0)
+                        {
+                            foreach (var call in functionCalls)
+                            {
+                                sb.AppendLine(call.Value);
+                            }
+                            functionCalls.Clear();
+                        }
+                        var toolCallReturn = generator.GenerateToolCallReturn(message.content, GlobalSettings.CurrentToolPromptIndex);
+                        sb.AppendLine($"{toolCallReturn}{endToken}");
+                        toolWait = false;
+                    }
+                    else
+                    {
+                        // 存在工具调用
+                        if (message.tool_calls?.Length > 0)
+                        {
+                            sb.AppendLine($"{assistantToken}");
+                            foreach (var toolCall in message.tool_calls)
+                            {
+                                var toolCallPrompt = generator.GenerateToolCall(toolCall, GlobalSettings.CurrentToolPromptIndex);
+                                sb.AppendLine($"{toolCallPrompt}");
+                                // 创建占位，等待工具调用结果
+                                functionCalls.Add(toolCall.id, "");
+                            }
+                            toolWait = true;
+                        }
+                        else
+                        {
+                            sb.AppendLine($"{assistantToken}\n{message.content}{endToken}");
+                        }
+                    }
+                }
+                else if(message.role == "tool")
+                {
+                    // 异常情况，不应该出现
+                    if (message.tool_call_id is null || !toolWait || functionCalls.Count==0 || !functionCalls.ContainsKey(message.tool_call_id)) continue;
+                    var toolCallResult = generator.GenerateToolCallResult(message.content, GlobalSettings.CurrentToolPromptIndex);
+                    // 保存工具调用结果
+                    functionCalls[message.tool_call_id] = toolCallResult;
                 }
             }
-            sb.AppendLine(assistantToken);
+
+            // 增加推理提示符
+            var lastMessage = history.LastOrDefault();
+            if (lastMessage?.role == "tool" && functionCalls.Count > 0)
+            {
+                // 添加工具调用结果
+                foreach (var call in functionCalls)
+                {
+                    sb.AppendLine(call.Value);
+                }
+                functionCalls.Clear();
+                // 添加工具推理提示符
+                sb.AppendLine(generator.GetToolPromptConfig(GlobalSettings.CurrentToolPromptIndex).FN_EXIT);
+            }else if (toolWait)
+            {
+                // 异常情况，说明最后一条消息是工具调用，激活了工具，但是没有工具调用结果
+                // 结束工具调用，再次提示助理推理
+                sb.AppendLine($"{endToken}{assistantToken}");
+            }
+            else
+            {
+                // 一般情况，添加助理提示符
+                sb.AppendLine(assistantToken);
+            }
+
             //Console.WriteLine(sb.ToString());
             return sb.ToString();
         }
 
-        /// <summary>
-        /// 文本转换为历史记录
-        /// </summary>
-        /// <param name="role"></param>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        public virtual ChatHistory TextToHistory(AuthorRole role, string text)
-        {
-            ChatHistory history = new ChatHistory();
-            history.AddMessage(role, TrimNamesFromText(text, role));
-            return history;
-        }
-
-
-        /// <summary>
-        /// 去除文本中的角色标记
-        /// </summary>
-        /// <param name="text"></param>
-        /// <param name="role"></param>
-        /// <returns></returns>
-        public virtual string TrimNamesFromText(string text, AuthorRole role)
-        {
-            if (role == AuthorRole.User && text.StartsWith(userToken))
-            {
-                text = text.Substring(userToken.Length).TrimStart();
-            }
-            else if (role == AuthorRole.Assistant && text.EndsWith(assistantToken))
-            {
-                text = text.Substring(0, text.Length - assistantToken.Length).TrimEnd();
-            }
-            return text;
-        }
     }
-
-    /// <summary>
-    /// 处理结尾多余的输出
-    /// </summary>
-    public class BaseTextStreamTransform
-        : ITextStreamTransform
-    {
-
-        /// <summary>
-        /// 开始标记
-        /// </summary>
-        protected virtual string startToken => "<|im_start|>";
-
-        /// <summary>
-        /// 转换文本流
-        /// </summary>
-        /// <param name="tokens"></param>
-        /// <returns></returns>
-        public async IAsyncEnumerable<string> TransformAsync(IAsyncEnumerable<string> tokens)
-        {
-            var tmp = new StringBuilder();
-
-            await foreach (var token in tokens)
-            {
-                tmp.Append(token);
-
-                if (tmp.ToString().Contains(startToken))
-                {
-                    yield return tmp.ToString().Replace(startToken, "");
-                    tmp.Clear();
-                }
-                else if (!startToken.Contains(tmp.ToString()))
-                {
-                    yield return tmp.ToString();
-                    tmp.Clear();
-                }
-            }
-        }
-
-        /// <summary>
-        /// 克隆文本流转换器
-        /// </summary>
-        /// <returns></returns>
-        public ITextStreamTransform Clone()
-        {
-            return new BaseTextStreamTransform();
-        }
-    }
-
 }

@@ -14,6 +14,7 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 - **嵌入支持**: 提供文本嵌入功能，支持多种嵌入模型。
 - **对话模版**: 提供了一些常见的对话模版。
 - **自动释放**: 支持自动释放已加载模型。
+- **函数调用**: 支持函数调用。
 - **API Key 认证**: 支持 API Key 认证。
 - **Gradio UI Demo**: 提供了一个基于 Gradio.NET 的 UI 演示。
 
