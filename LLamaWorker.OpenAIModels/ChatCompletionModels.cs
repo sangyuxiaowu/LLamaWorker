@@ -1,4 +1,6 @@
-﻿namespace LLamaWorker.OpenAIModels
+﻿using System.Text.Json.Serialization;
+
+namespace LLamaWorker.OpenAIModels
 {
     /// <summary>
     /// 对话完成请求
@@ -54,6 +56,7 @@
         /// 工具调用信息
         /// </summary>
         /// <example>null</example>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ToolMeaasge[]? tool_calls { get; set; }
 
         /// <summary>
@@ -61,6 +64,7 @@
         /// role 为 tool 时必填
         /// </summary>
         /// <example>null</example>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? tool_call_id { get; set; }
     }
 

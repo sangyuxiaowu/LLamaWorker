@@ -339,13 +339,13 @@ namespace LLamaWorker.Services
                     var historyTransform = Activator.CreateInstance(type) as ITemplateTransform;
                     if (historyTransform != null)
                     {
-                        history = historyTransform.HistoryToText(messages, toolPrompt);
+                        history = historyTransform.HistoryToText(messages, _toolPromptGenerator, toolPrompt);
                     }
                 }
             }
             else
             {
-                history = new BaseHistoryTransform().HistoryToText(messages, toolPrompt);
+                history = new BaseHistoryTransform().HistoryToText(messages, _toolPromptGenerator, toolPrompt);
             }
 
             return new ChatHistoryResult(history, toolenabled, toolstopwords);

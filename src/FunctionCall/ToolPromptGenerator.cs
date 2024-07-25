@@ -46,6 +46,39 @@ namespace LLamaWorker.FunctionCall
         }
 
         /// <summary>
+        /// 生成工具调用
+        /// </summary>
+        /// <param name="tool">工具调用消息</param>
+        /// <param name="tpl">模版序号</param>
+        /// <returns></returns>
+        public string GenerateToolCall(ToolMeaasge tool, int tpl = 0)
+        {
+            return $"{_config[tpl].FN_NAME}: {tool.function.name}\n{_config[tpl].FN_ARGS}: {tool.function.arguments}";
+        }
+
+        /// <summary>
+        /// 生成工具返回结果
+        /// </summary>
+        /// <param name="res">工具调用结果</param>
+        /// <param name="tpl">模版序号</param>
+        /// <returns></returns>
+        public string GenerateToolCallResult(string? res, int tpl = 0)
+        {
+            return $"{_config[tpl].FN_RESULT}: {res}";
+        }
+
+        /// <summary>
+        /// 生成工具推理结果
+        /// </summary>
+        /// <param name="res">工具推理结果</param>
+        /// <param name="tpl">模版序号</param>
+        /// <returns></returns>
+        public string GenerateToolCallReturn(string? res, int tpl = 0)
+        {
+            return $"{_config[tpl].FN_EXIT}: {res}";
+        }
+
+        /// <summary>
         /// 检查并生成工具调用
         /// </summary>
         /// <param name="input">推理输出</param>
