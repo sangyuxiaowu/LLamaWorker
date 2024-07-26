@@ -85,6 +85,3 @@ dotnet run --project ChatUI\ChatUI.csproj
 然后打开浏览器访问 Gradio UI 演示。
 
 ![](doc/ui.png)
-
-
-https://pan.baidu.com/s/1NuOmgY7yf0vs9ZGe1y-u0A?pwd=6666
