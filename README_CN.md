@@ -20,7 +20,7 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 
 ## 使用 Vulkan 编译版本
 
-在发布中提供了 Vulkan 后端的编译版本，您可以从 [Releases](releases) 中下载对应的编译版本：
+在发布中提供了 Vulkan 后端的编译版本，您可以从 [Releases](../../releases) 中下载对应的编译版本：
 
 - `LLamaWorker-Vulkan-win-x64.zip`
 - `LLamaWorker-Vulkan-linux-x64.zip`

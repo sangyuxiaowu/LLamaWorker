@@ -20,7 +20,7 @@ English | [中文](README_CN.md)
 
 ## Use Vulkan Compiled Version
 
-A Vulkan backend compiled version is provided in the release, you can download the corresponding compiled version from [Releases](releases):
+A Vulkan backend compiled version is provided in the release, you can download the corresponding compiled version from [Releases](../../releases):
 
 - `LLamaWorker-Vulkan-win-x64.zip`
 - `LLamaWorker-Vulkan-linux-x64.zip`
