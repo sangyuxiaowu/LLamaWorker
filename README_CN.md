@@ -8,7 +8,7 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 
 ## 特性
 
-- **兼容 OpenAI API**: 提供与 OpenAI 类似的 API，方便迁移和集成。
+- **兼容 OpenAI API**: 提供与 OpenAI / Azure OpenAI 类似的 API，方便迁移和集成。
 - **多模型支持**: 支持配置和切换不同的模型，满足不同场景的需求。
 - **流式响应**: 支持流式响应，提高大型响应的处理效率。
 - **嵌入支持**: 提供文本嵌入功能，支持多种嵌入模型。
@@ -17,6 +17,15 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 - **函数调用**: 支持函数调用。
 - **API Key 认证**: 支持 API Key 认证。
 - **Gradio UI Demo**: 提供了一个基于 Gradio.NET 的 UI 演示。
+
+## 使用 Vulkan 编译版本
+
+在发布中提供了 Vulkan 后端的编译版本，您可以从 [Releases](releases) 中下载对应的编译版本：
+
+- `LLamaWorker-Vulkan-win-x64.zip`
+- `LLamaWorker-Vulkan-linux-x64.zip`
+
+下载并解压后，修改 `appsettings.json` 文件中的配置，即可运行软件并开始使用。
 
 ## 快速开始
 
@@ -76,3 +85,6 @@ dotnet run --project ChatUI\ChatUI.csproj
 然后打开浏览器访问 Gradio UI 演示。
 
 ![](doc/ui.png)
+
+
+https://pan.baidu.com/s/1NuOmgY7yf0vs9ZGe1y-u0A?pwd=6666

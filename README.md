@@ -8,7 +8,7 @@ English | [中文](README_CN.md)
 
 ## Features
 
-- **OpenAI API Compatible**: Offers an API similar to OpenAI's, facilitating migration and integration.
+- **OpenAI API Compatible**: Offers an API similar to OpenAI's / Azure OpenAI, making migration and integration easy.
 - **Multi-Model Support**: Supports configuring and switching between different models to meet the needs of various scenarios.
 - **Streaming Response**: Supports streaming responses to improve the efficiency of processing large responses.
 - **Embedding Support**: Provides text embedding functionality with support for various embedding models.
@@ -17,6 +17,15 @@ English | [中文](README_CN.md)
 - **Function Call**: Supports function calls.
 - **API Key Authentication**: Supports API Key authentication.
 - **Gradio UI Demo**: Provides a UI demo based on Gradio.NET.
+
+## Use Vulkan Compiled Version
+
+A Vulkan backend compiled version is provided in the release, you can download the corresponding compiled version from [Releases](releases):
+
+- `LLamaWorker-Vulkan-win-x64.zip`
+- `LLamaWorker-Vulkan-linux-x64.zip`
+
+After downloading and unzipping, modify the configuration in the `appsettings.json` file, and you can run the software and start using it.
 
 ## Quick Start
 
