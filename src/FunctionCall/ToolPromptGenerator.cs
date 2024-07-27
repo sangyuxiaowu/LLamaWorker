@@ -142,8 +142,26 @@ namespace LLamaWorker.FunctionCall
             var nameForHuman = function.name;
             var nameForModel = function.name;
             var descriptionForModel = function.description ?? string.Empty;
-            var parameters = JsonSerializer.Serialize(function.parameters, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
 
+            // 函数无参数
+            if(function.parameters == null || function.parameters.properties == null || function.parameters.properties.Count == 0)
+            {
+                return string.Format(toolDescTemplate, nameForHuman, nameForModel, descriptionForModel, string.Empty).Trim();
+            }
+
+            //处理参数 required 字段
+            var properties = function.parameters.properties;
+            if (function.parameters.required?.Length > 0)
+            {
+                foreach (var key in function.parameters.required)
+                {
+                    if (properties.ContainsKey(key))
+                    {
+                        properties[key].required = true;
+                    }
+                }
+            }
+            var parameters = JsonSerializer.Serialize(properties, new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) });
             return string.Format(toolDescTemplate, nameForHuman, nameForModel, descriptionForModel, parameters).Trim();
         }
     }
