@@ -1,6 +1,4 @@
-﻿using LLama.Abstractions;
-using LLama.Common;
-using LLamaWorker.Config;
+﻿using LLamaWorker.Config;
 using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
 using System.Text;
@@ -10,7 +8,7 @@ namespace LLamaWorker.Transform
     /// <summary>
     /// ChatML 历史记录转换
     /// </summary>
-    public class BaseHistoryTransform: ITemplateTransform
+    public class BaseHistoryTransform : ITemplateTransform
     {
         /// <summary>
         /// 用户标记
@@ -41,9 +39,11 @@ namespace LLamaWorker.Transform
         /// 历史记录转换为文本
         /// </summary>
         /// <param name="history"></param>
+        /// <param name="generator"></param>
+        /// <param name="toolinfo"></param>
         /// <param name="toolPrompt"></param>
         /// <returns></returns>
-        public virtual string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, string toolPrompt="")
+        public virtual string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, ToolPromptInfo toolinfo, string toolPrompt = "")
         {
 
             // 若有系统消息，则会放在最开始
@@ -99,7 +99,7 @@ namespace LLamaWorker.Transform
                             }
                             functionCalls.Clear();
                         }
-                        var toolCallReturn = generator.GenerateToolCallReturn(message.content, GlobalSettings.CurrentToolPromptIndex);
+                        var toolCallReturn = generator.GenerateToolCallReturn(message.content, toolinfo.Index);
                         sb.AppendLine($"{toolCallReturn}{endToken}");
                         toolWait = false;
                     }
@@ -111,7 +111,7 @@ namespace LLamaWorker.Transform
                             sb.AppendLine($"{assistantToken}");
                             foreach (var toolCall in message.tool_calls)
                             {
-                                var toolCallPrompt = generator.GenerateToolCall(toolCall, GlobalSettings.CurrentToolPromptIndex);
+                                var toolCallPrompt = generator.GenerateToolCall(toolCall, toolinfo.Index);
                                 sb.AppendLine($"{toolCallPrompt}");
                                 // 创建占位，等待工具调用结果
                                 functionCalls.Add(toolCall.id, "");
@@ -124,11 +124,11 @@ namespace LLamaWorker.Transform
                         }
                     }
                 }
-                else if(message.role == "tool")
+                else if (message.role == "tool")
                 {
                     // 异常情况，不应该出现
-                    if (message.tool_call_id is null || !toolWait || functionCalls.Count==0 || !functionCalls.ContainsKey(message.tool_call_id)) continue;
-                    var toolCallResult = generator.GenerateToolCallResult(message.content, GlobalSettings.CurrentToolPromptIndex);
+                    if (message.tool_call_id is null || !toolWait || functionCalls.Count == 0 || !functionCalls.ContainsKey(message.tool_call_id)) continue;
+                    var toolCallResult = generator.GenerateToolCallResult(message.content, toolinfo.Index);
                     // 保存工具调用结果
                     functionCalls[message.tool_call_id] = toolCallResult;
                 }
@@ -145,8 +145,9 @@ namespace LLamaWorker.Transform
                 }
                 functionCalls.Clear();
                 // 添加工具推理提示符
-                sb.AppendLine(generator.GetToolPromptConfig(GlobalSettings.CurrentToolPromptIndex).FN_EXIT);
-            }else if (toolWait)
+                sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_EXIT);
+            }
+            else if (toolWait)
             {
                 // 异常情况，说明最后一条消息是工具调用，激活了工具，但是没有工具调用结果
                 // 结束工具调用，再次提示助理推理

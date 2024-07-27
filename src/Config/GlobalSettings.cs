@@ -9,17 +9,6 @@ namespace LLamaWorker.Config
         ///  初始加载的模型索引
         /// </summary>
         public static int CurrentModelIndex { get; set; } = 0;
-
-        /// <summary>
-        /// 工具提示词配置索引
-        /// </summary>
-        public static int CurrentToolPromptIndex { get; set; } = 0;
-
-        /// <summary>
-        /// 工具提示词语言
-        /// </summary>
-        public static string CurrentToolPromptLang { get; set; } = "zh";
-
         /// <summary>
         ///  模型是否完成了加载
         /// </summary>
@@ -38,8 +27,6 @@ namespace LLamaWorker.Config
         {
             var applicationSettings = configuration.GetSection("GlobalSettings");
             CurrentModelIndex = applicationSettings.GetValue<int>("CurrentModelIndex");
-            CurrentToolPromptIndex = applicationSettings.GetValue<int>("CurrentToolPromptIndex");
-            CurrentToolPromptLang = applicationSettings.GetValue<string>("CurrentToolPromptLang");
             AutoReleaseTime = applicationSettings.GetValue<int>("AutoReleaseTime");
         }
     }
