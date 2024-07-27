@@ -85,6 +85,12 @@ namespace LLamaWorker.OpenAIModels
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? @enum { get; set; }
+
+        /// <summary>
+        /// 参数是否必需
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public bool? required { get; set; }
     }
 
     /// <summary>

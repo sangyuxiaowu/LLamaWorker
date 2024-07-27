@@ -135,6 +135,88 @@ Content-Type: application/json
 }
 
 ###
+# 测试提交更多信息
+
+POST {{LLamaWorker_HostAddress}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "system",
+      "content": "你是用户 SangYuXiaoWu 的助理，你会遵守规则。您将完成所需的步骤并在采取任何后续行动之前请求批准。\r\n如果用户不提供足够的信息让你完成一项任务，你会一直问问题，直到你有足够的信息来完成任务。"
+    },
+    {
+      "role": "user",
+      "content": "帮我给我的老板，老周写一封邮件说我要涨薪"
+    },
+    {
+      "role": "assistant",
+      "content": "在为您生成电子邮件所需的步骤之前，我需要知道一些额外的信息，以确保邮件的内容符合您预期。请问您能提供以下详细信息吗？\n\n1. 您目前的职位或工作描述。\n2. 您希望获取的具体薪资提升数字。\n3. 与此请求相关的任何具体成就或贡献（以支持您的薪资请求）。\n4. 是否有特定的日期或者时间范围内您想要提出这封邮件。\n\n请提供上述信息，这样我才能更好地帮助您生成需求的步骤。"
+    },
+    {
+      "role": "user",
+      "content": "我是一名软件工程师，我希望我的薪资能够提升到每月 30000 元，我在公司期间完成了多个项目并且获得了团队的认可，我希望在下个月的月底之前能够提出这封邮件。"
+    }
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "AuthorEmailPlanner-GenerateRequiredSteps",
+        "description": "返回编写电子邮件所需的必要步骤。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "topic",
+            "recipients"
+          ],
+          "properties": {
+            "topic": {
+              "type": "string",
+              "description": "电子邮件内容的2-3句简要描述"
+            },
+            "recipients": {
+              "type": "string",
+              "description": "收件人的描述"
+            }
+          }
+        }
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "EmailPlugin-SendEmail",
+        "description": "向收件人发送电子邮件。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "recipientEmails",
+            "subject",
+            "body"
+          ],
+          "properties": {
+            "recipientEmails": {
+              "type": "string",
+              "description": "以分号分隔的收件人电子邮件列表"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "type": "function"
+    }
+  ],
+  "tool_choice": "auto"
+}
+
+###
 # 测试调用结果
 POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
@@ -149,6 +231,14 @@ Content-Type: application/json
     {
       "role": "user",
       "content": "帮我给我的老板，老周写一封邮件说我要涨薪"
+    },
+    {
+      "role": "assistant",
+      "content": "在为您生成电子邮件所需的步骤之前，我需要知道一些额外的信息，以确保邮件的内容符合您预期。请问您能提供以下详细信息吗？\n\n1. 您目前的职位或工作描述。\n2. 您希望获取的具体薪资提升数字。\n3. 与此请求相关的任何具体成就或贡献（以支持您的薪资请求）。\n4. 是否有特定的日期或者时间范围内您想要提出这封邮件。\n\n请提供上述信息，这样我才能更好地帮助您生成需求的步骤。"
+    },
+    {
+      "role": "user",
+      "content": "我是一名软件工程师，我希望我的薪资能够提升到每月 30000 元，我在公司期间完成了多个项目并且获得了团队的认可，我希望在下个月的月底之前能够提出这封邮件。"
     },
     {
         "role": "assistant",
@@ -227,7 +317,7 @@ Content-Type: application/json
 }
 
 ###
-# 测试调用结果
+# 测试草拟邮件
 POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
@@ -243,96 +333,12 @@ Content-Type: application/json
       "content": "帮我给我的老板，老周写一封邮件说我要涨薪"
     },
     {
-        "role": "assistant",
-        "content": null,
-        "tool_calls": [
-          {
-            "id": "call_7dd44be53d3048a9ba9735c7be0133f6",
-            "type": "function",
-            "function": {
-              "name": "AuthorEmailPlanner-GenerateRequiredSteps",
-              "arguments": "{\"topic\": \"请求增加薪资\", \"recipients\": \"周\"}"
-            }
-          }
-        ]
-    },
-    {
-        "role": "tool",
-        "content": "当然，以下是建议的前三个步骤来准备你的加薪请求电子邮件：\n\n1. **研究和准备**：\n   - **市场调研**：了解行业标准和同类职位的薪酬水平，以便有理有据地提出加薪请求。\n   - **个人贡献总结**：列出你在公司期间的成就、项目经验以及对团队和公司的贡献。\n   - **公司业绩了解**：了解公司目前的财务状况和业绩，确保选择一个合适的时机。\n\n2. **明确你的请求**：\n   - **具体数字**：决定你希望加薪的具体金额或百分比。\n   - **理由清晰**：准备好阐述加薪的合理性，包括你的研究结果和个人贡献。\n\n3. **起草邮件**：\n   - **语气专业**：确保邮件语气正式、礼貌，同时表达出你的感激之情和对公司的热爱。\n   - **结构清晰**：确保邮件结构清晰，有明确的开头（表明请求）、正文（提出理由）和结尾（感谢和期待回复）。\n\n这样，你既能确保邮件专业性，也能增强请求的说服力。",
-        "tool_call_id": "call_7dd44be53d3048a9ba9735c7be0133f6"
-    }
-  ],
-  "tools": [
-    {
-      "function": {
-        "name": "AuthorEmailPlanner-GenerateRequiredSteps",
-        "description": "返回编写电子邮件所需的必要步骤。",
-        "parameters": {
-          "type": "object",
-          "required": [
-            "topic",
-            "recipients"
-          ],
-          "properties": {
-            "topic": {
-              "type": "string",
-              "description": "电子邮件内容的2-3句简要描述"
-            },
-            "recipients": {
-              "type": "string",
-              "description": "收件人的描述"
-            }
-          }
-        }
-      },
-      "type": "function"
-    },
-    {
-      "function": {
-        "name": "EmailPlugin-SendEmail",
-        "description": "向收件人发送电子邮件。",
-        "parameters": {
-          "type": "object",
-          "required": [
-            "recipientEmails",
-            "subject",
-            "body"
-          ],
-          "properties": {
-            "recipientEmails": {
-              "type": "string",
-              "description": "以分号分隔的收件人电子邮件列表"
-            },
-            "subject": {
-              "type": "string"
-            },
-            "body": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "type": "function"
-    }
-  ],
-  "tool_choice": "auto"
-}
-
-###
-# 测试确认发送
-POST {{LLamaWorker_HostAddress}}/v1/chat/completions
-Content-Type: application/json
-
-{
-  "model": "gpt-3.5-turbo",
-  "messages": [
-    {
-      "role": "system",
-      "content": "你是用户 SangYuXiaoWu 的助理，你会遵守规则。您将完成所需的步骤并在采取任何后续行动之前请求批准。\r\n如果用户不提供足够的信息让你完成一项任务，你会一直问问题，直到你有足够的信息来完成任务。"
+      "role": "assistant",
+      "content": "在为您生成电子邮件所需的步骤之前，我需要知道一些额外的信息，以确保邮件的内容符合您预期。请问您能提供以下详细信息吗？\n\n1. 您目前的职位或工作描述。\n2. 您希望获取的具体薪资提升数字。\n3. 与此请求相关的任何具体成就或贡献（以支持您的薪资请求）。\n4. 是否有特定的日期或者时间范围内您想要提出这封邮件。\n\n请提供上述信息，这样我才能更好地帮助您生成需求的步骤。"
     },
     {
       "role": "user",
-      "content": "帮我给我的老板，老周写一封邮件说我要涨薪"
+      "content": "我是一名软件工程师，我希望我的薪资能够提升到每月 30000 元，我在公司期间完成了多个项目并且获得了团队的认可，我希望在下个月的月底之前能够提出这封邮件。"
     },
     {
         "role": "assistant",
@@ -355,11 +361,11 @@ Content-Type: application/json
     },
     {
         "role": "assistant",
-        "content": "现在我已经准备好了写邮件的步骤。以下是建议的邮件内容概述：\n\n---\n\n**主题：关于薪资调整的请求**\n\n尊敬的老周，\n\n在我于[公司名]的这段宝贵时间里，我深知能够实践我的技能和兴趣，为公司带来了独特的价值，并且我和团队一起取得了许多成功的项目与成就。这些成长都归功于此工作环境提供了无比的支持、资源和机会。\n\n通过市场调研及我在职位上的表现，我认为我的贡献已提升到一个新层次。根据当前行业标准以及个人贡献的情况，我期望将薪资调整为[具体薪资数字]元/月（或百分比上升至[具体百分比]%），这反映了我的专业技能的提高及对公司成长做出的重大贡献。\n\n此请求不仅仅基于我的职业规划和发展考虑，同时也出于公司利益考量。为公平起见，并保持我们作为行业领导者的工作氛围，我希望这次调薪能够正式化，使我得到相应的认可和回报。\n\n因此，我恳请您认真考虑这提议，并安排一个时间进行深入的讨论，以便我们可以更详细地交流这个话题及其实施的可能性。\n\n感谢您一直以来的支持与指导。我期待着与您进一步探讨此事，并相信我们能够共同找到一套满意且对双方都充满正面影响的解决方案。\n\n顺祝商祺，\n\n[您的名字]\n---\n\n请检查和修改这段文本以适应你的具体情况，确保所有细节都是准确且合适的。完成后，你可以使用EmailPlugin-SendEmail工具将邮件发送出去。"
+        "content": "现在您已经准备好前三个步骤来准备邮件。在草拟具体电子邮件时，请确保：\n\n- 在第一段简要说明提出邮件的原因并用一种尊敬和表达感激的态度开始。\n- 详细说明您成就、项目经验和团队认可，并基于此明确您的加薪请求（如希望增加至每月30000元）。\n- 最后，确认公司的政策或程序以了解正式提出加薪的需求是否需要特定的格式或时间框架以及可见的业绩证明。\n  \n一旦草拟好邮件，请注意检查语法和拼写错误。最后，在完成这封电子邮件之前请考虑：\n\n1. 复核您的请求是否符合公司现行政策（比如公司是否有正式绩效评估或薪酬审阅周期）。\n2. 选择恰当的时间提交，尽量避开团队或公司的繁忙时刻并确保对方有足够时间审阅邮件，并给出回复。\n\n当您准备好了之后，请告诉我进行下一步。"
     },
     {
-      "role": "user",
-      "content": "大体框架没有问题，可以发送"
+        "role": "user",
+        "content": "大体框架没有问题，你帮我草拟即可"
     }
   ],
   "tools": [
