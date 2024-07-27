@@ -1,6 +1,5 @@
 ﻿using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -64,7 +63,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public string GenerateToolCallResult(string? res, int tpl = 0)
         {
-            return $"{_config[tpl].FN_RESULT}: {res}";
+            return string.Format(_config[tpl].FN_RESULT_TEMPLATE, _config[tpl].FN_RESULT, res);
         }
 
         /// <summary>
@@ -86,7 +85,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public List<ToolMeaasgeFuntion> GenerateToolCall(string input, int tpl = 0)
         {
-            string pattern = @$"{_config[tpl].FN_NAME}:? (.*?)\s*({_config[tpl].FN_ARGS}:? (.*?)\s*)(?={_config[tpl].FN_NAME}|$|\n)";
+            string pattern = _config[tpl].FN_TEST;
             Regex regex = new Regex(pattern, RegexOptions.Singleline);
             MatchCollection matches = regex.Matches(input);
             List<ToolMeaasgeFuntion> results = new();

@@ -48,12 +48,18 @@ namespace LLamaWorker.Config
         public string[]? AntiPrompts { get; set; }
 
         /// <summary>
+        /// 工具提示配置
+        /// </summary>
+        public ToolPromptInfo ToolPrompt { get; set; }
+
+        /// <summary>
         /// 模型配置信息
         /// </summary>
         /// <param name="modelPath">模型路径</param>
         public LLmModelSettings(string modelPath)
         {
             ModelParams = new ModelParams(modelPath);
+            ToolPrompt = new ToolPromptInfo();
         }
 
         /// <summary>
@@ -62,7 +68,24 @@ namespace LLamaWorker.Config
         public LLmModelSettings()
         {
             ModelParams = new ModelParams("");
+            ToolPrompt = new ToolPromptInfo();
         }
+    }
+
+    /// <summary>
+    /// 工具提示配置
+    /// </summary>
+    public class ToolPromptInfo
+    {
+        /// <summary>
+        /// 提示模板索引
+        /// </summary>
+        public int Index { get; set; } = 0;
+
+        /// <summary>
+        /// 模板提示语言
+        /// </summary>
+        public string Lang { get; set; } = "en";
     }
 
     /// <summary>

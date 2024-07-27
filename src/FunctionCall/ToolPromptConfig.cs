@@ -25,6 +25,16 @@ public class ToolPromptConfig
     public string FN_RESULT { get; set; }
 
     /// <summary>
+    /// 工具结果模板
+    /// </summary>
+    public string FN_RESULT_TEMPLATE { get; set; }
+
+    /// <summary>
+    /// 函数调提取的正则表达式，用于提取函数名和参数
+    /// </summary>
+    public string FN_TEST { get; set; }
+
+    /// <summary>
     /// 工具返回占位符
     /// </summary>
     public string FN_EXIT { get; set; }

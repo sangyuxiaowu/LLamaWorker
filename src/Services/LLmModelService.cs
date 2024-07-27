@@ -1,5 +1,4 @@
 ﻿using LLama;
-using LLama.Abstractions;
 using LLama.Common;
 using LLamaWorker.Config;
 using LLamaWorker.FunctionCall;
@@ -150,7 +149,7 @@ namespace LLamaWorker.Services
             // 工具返回检测
             if (chatHistory.IsToolPromptEnabled)
             {
-                var tools = _toolPromptGenerator.GenerateToolCall(result.ToString(), GlobalSettings.CurrentToolPromptIndex);
+                var tools = _toolPromptGenerator.GenerateToolCall(result.ToString(), _usedset.ToolPrompt.Index);
                 if (tools.Count > 0)
                 {
                     return new ChatCompletionResponse
@@ -312,14 +311,14 @@ namespace LLamaWorker.Services
         private ChatHistoryResult GetChatHistory(ChatCompletionRequest request)
         {
             // 生成工具提示
-            var toolPrompt = _toolPromptGenerator.GenerateToolPrompt(request, GlobalSettings.CurrentToolPromptIndex, GlobalSettings.CurrentToolPromptLang);
+            var toolPrompt = _toolPromptGenerator.GenerateToolPrompt(request, _usedset.ToolPrompt.Index, _usedset.ToolPrompt.Lang);
             var toolenabled = !string.IsNullOrWhiteSpace(toolPrompt);
-            var toolstopwords = toolenabled ? _toolPromptGenerator.GetToolStopWords(GlobalSettings.CurrentToolPromptIndex) : null;
+            var toolstopwords = toolenabled ? _toolPromptGenerator.GetToolStopWords(_usedset.ToolPrompt.Index) : null;
 
             var messages = request.messages;
 
             // 添加系统提示
-            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role!="system")
+            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
             {
                 _logger.LogInformation("Add system prompt.");
                 messages = messages.Prepend(new ChatCompletionMessage
@@ -339,13 +338,13 @@ namespace LLamaWorker.Services
                     var historyTransform = Activator.CreateInstance(type) as ITemplateTransform;
                     if (historyTransform != null)
                     {
-                        history = historyTransform.HistoryToText(messages, _toolPromptGenerator, toolPrompt);
+                        history = historyTransform.HistoryToText(messages, _toolPromptGenerator, _usedset.ToolPrompt, toolPrompt);
                     }
                 }
             }
             else
             {
-                history = new BaseHistoryTransform().HistoryToText(messages, _toolPromptGenerator, toolPrompt);
+                history = new BaseHistoryTransform().HistoryToText(messages, _toolPromptGenerator, _usedset.ToolPrompt, toolPrompt);
             }
 
             return new ChatHistoryResult(history, toolenabled, toolstopwords);
