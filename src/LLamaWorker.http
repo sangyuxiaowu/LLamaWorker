@@ -157,7 +157,7 @@ Content-Type: application/json
     },
     {
       "role": "user",
-      "content": "我是一名软件工程师，我希望我的薪资能够提升到每月 30000 元，我在公司期间完成了多个项目并且获得了团队的认可，我希望在下个月的月底之前能够提出这封邮件。"
+      "content": "我是一名软件工程师，我希望我的薪资能够提升到每月 30000 元，我在公司期间完成了多个项目并且获得了团队的认可，我希望在下个月的月底之前能够提出这封邮件。老板邮箱ceo@my.com"
     }
   ],
   "tools": [
@@ -387,6 +387,166 @@ Content-Type: application/json
             "recipients": {
               "type": "string",
               "description": "收件人的描述"
+            }
+          }
+        }
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "EmailPlugin-SendEmail",
+        "description": "向收件人发送电子邮件。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "recipientEmails",
+            "subject",
+            "body"
+          ],
+          "properties": {
+            "recipientEmails": {
+              "type": "string",
+              "description": "以分号分隔的收件人电子邮件列表"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "type": "function"
+    }
+  ],
+  "tool_choice": "auto"
+}
+
+###
+# 多个工具调用测试
+POST {{LLamaWorker_HostAddress}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "北京和上海哪里气温高？"
+    }
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "GetWeatherPlugin-GetCurrentTemperature",
+        "description": "获取指定城市的当前气温。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "city"
+          ],
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "城市名称"
+            }
+          }
+        }
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "EmailPlugin-SendEmail",
+        "description": "向收件人发送电子邮件。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "recipientEmails",
+            "subject",
+            "body"
+          ],
+          "properties": {
+            "recipientEmails": {
+              "type": "string",
+              "description": "以分号分隔的收件人电子邮件列表"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "type": "function"
+    }
+  ],
+  "tool_choice": "auto"
+}
+
+###
+# 多个工具回复测试
+POST {{LLamaWorker_HostAddress}}/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "北京和上海哪里气温高？"
+    },
+    {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_c9bb3941cdfe45a3a4d51dcd5aaf07c3",
+            "type": "function",
+            "function": {
+              "name": "GetWeatherPlugin-GetCurrentTemperature",
+              "arguments": "{\"city\":\"北京\"}"
+            }
+          },
+          {
+            "id": "call_d9938ae2183347f6a62af8141781f63c",
+            "type": "function",
+            "function": {
+              "name": "GetWeatherPlugin-GetCurrentTemperature",
+              "arguments": "{\"city\":\"上海\"}"
+            }
+          }
+        ]
+     },
+    {
+        "role": "tool",
+        "content": "30℃",
+        "tool_call_id": "call_c9bb3941cdfe45a3a4d51dcd5aaf07c3"
+    },
+    {
+        "role": "tool",
+        "content": "33℃",
+        "tool_call_id": "call_d9938ae2183347f6a62af8141781f63c"
+    }
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "GetWeatherPlugin-GetCurrentTemperature",
+        "description": "获取指定城市的当前气温。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "city"
+          ],
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "城市名称"
             }
           }
         }

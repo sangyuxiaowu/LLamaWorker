@@ -25,6 +25,16 @@ public class ToolPromptConfig
     public string FN_RESULT { get; set; }
 
     /// <summary>
+    /// 函数调用模板
+    /// </summary>
+    public string FN_CALL_TEMPLATE { get; set; }
+
+    /// <summary>
+    /// 函数调用与结果分隔符
+    /// </summary>
+    public string FN_RESULT_SPLIT { get; set; }
+
+    /// <summary>
     /// 工具结果模板
     /// </summary>
     public string FN_RESULT_TEMPLATE { get; set; }
