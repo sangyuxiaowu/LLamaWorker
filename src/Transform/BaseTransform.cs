@@ -116,6 +116,8 @@ namespace LLamaWorker.Transform
                                 // 创建占位，等待工具调用结果
                                 functionCalls.Add(toolCall.id, "");
                             }
+                            var toolSplit = generator.GetToolResultSplit(toolinfo.Index);
+                            sb.Append($"{toolSplit}");
                             toolWait = true;
                         }
                         else

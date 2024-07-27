@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{98
 		README.md = README.md
 		README_CN.md = README_CN.md
 		version.json = version.json
+		doc\regex.md = doc\regex.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Cpu", "LLamaWorker.Backend.Cpu\LLamaWorker.Backend.Cpu.csproj", "{13F70548-EAB2-4B20-A2C9-7B46E4F18EE0}"
@@ -23,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatUI", "ChatUI\ChatUI.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.OpenAIModels", "LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj", "{AD025766-1079-4EA5-94DD-AA9A96EC8173}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLamaWorker.Backend.Vulkan", "LLamaWorker.Backend.Vulkan\LLamaWorker.Backend.Vulkan.csproj", "{DE6EAA14-0D69-4D43-A502-6BCADC41C13E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Vulkan", "LLamaWorker.Backend.Vulkan\LLamaWorker.Backend.Vulkan.csproj", "{DE6EAA14-0D69-4D43-A502-6BCADC41C13E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

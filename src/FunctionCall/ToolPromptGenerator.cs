@@ -35,6 +35,16 @@ namespace LLamaWorker.FunctionCall
         }
 
         /// <summary>
+        /// 获取工具结果分割符
+        /// </summary>
+        /// <param name="tpl">模版序号</param>
+        /// <returns></returns>
+        public string GetToolResultSplit(int tpl = 0)
+        {
+            return _config[tpl].FN_RESULT_SPLIT;
+        }
+
+        /// <summary>
         /// 获取工具提示配置
         /// </summary>
         /// <param name="tpl">模版序号</param>
@@ -52,7 +62,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public string GenerateToolCall(ToolMeaasge tool, int tpl = 0)
         {
-            return $"{_config[tpl].FN_NAME}: {tool.function.name}\n{_config[tpl].FN_ARGS}: {tool.function.arguments}";
+            return string.Format(_config[tpl].FN_CALL_TEMPLATE, tool.function.name, tool.function.arguments);
         }
 
         /// <summary>
@@ -63,7 +73,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public string GenerateToolCallResult(string? res, int tpl = 0)
         {
-            return string.Format(_config[tpl].FN_RESULT_TEMPLATE, _config[tpl].FN_RESULT, res);
+            return string.Format(_config[tpl].FN_RESULT_TEMPLATE, res);
         }
 
         /// <summary>
