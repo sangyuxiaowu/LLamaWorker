@@ -17,7 +17,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "system",
@@ -36,7 +36,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "stream": true,
   "messages": [
     {
@@ -55,7 +55,7 @@ POST {{LLamaWorker_HostAddress}}/v1/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "stream": true,
   "prompt": "You are a helpful assistant.Say this is a test.",
   "max_tokens": 100
@@ -67,7 +67,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "system",
@@ -141,7 +141,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "system",
@@ -222,7 +222,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "system",
@@ -322,7 +322,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "system",
@@ -430,7 +430,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "user",
@@ -494,7 +494,7 @@ POST {{LLamaWorker_HostAddress}}/v1/chat/completions
 Content-Type: application/json
 
 {
-  "model": "gpt-3.5-turbo",
+  "model": "default",
   "messages": [
     {
       "role": "user",
