@@ -138,13 +138,19 @@ namespace LLamaWorker.Services
             var messagesContent = request.messages.Select(x => x.content).ToArray();
             var prompt_context = string.Join("", messagesContent);
             var completion_tokens = 0;
+
+            _logger.LogDebug("Prompt context: {prompt_context}", chatHistory.ChatHistory);
+
             await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams))
             {
-                _logger.LogDebug("Message: {output}", output);
+                _logger.LogTrace("Message: {output}", output);
                 result.Append(output);
                 completion_tokens++;
             }
             var prompt_tokens = ex.PromptTokens;
+
+            _logger.LogDebug("Prompt tokens: {prompt_tokens}, Completion tokens: {completion_tokens}", prompt_tokens, completion_tokens);
+            _logger.LogDebug("Completion result: {result}", result);
 
             // 工具返回检测
             if (chatHistory.IsToolPromptEnabled)
@@ -152,6 +158,7 @@ namespace LLamaWorker.Services
                 var tools = _toolPromptGenerator.GenerateToolCall(result.ToString(), _usedset.ToolPrompt.Index);
                 if (tools.Count > 0)
                 {
+                    _logger.LogDebug("Tool calls: {tools}", tools.Select(x=>x.name));
                     return new ChatCompletionResponse
                     {
                         id = $"chatcmpl-{Guid.NewGuid():N}",
