@@ -10,8 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{98
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
 		README_CN.md = README_CN.md
-		version.json = version.json
 		doc\regex.md = doc\regex.md
+		version.json = version.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Cpu", "LLamaWorker.Backend.Cpu\LLamaWorker.Backend.Cpu.csproj", "{13F70548-EAB2-4B20-A2C9-7B46E4F18EE0}"
@@ -25,6 +25,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.OpenAIModels", "LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj", "{AD025766-1079-4EA5-94DD-AA9A96EC8173}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Vulkan", "LLamaWorker.Backend.Vulkan\LLamaWorker.Backend.Vulkan.csproj", "{DE6EAA14-0D69-4D43-A502-6BCADC41C13E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{8AEA6469-5FE1-416F-B16E-50D2A8315806}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionCall", "test\FunctionCall\FunctionCall.csproj", "{DC7E7AAB-E45B-4695-843D-6A679815407A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simple", "test\Simple\Simple.csproj", "{6A88838C-A4DC-4844-8828-87F2F866C536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,9 +62,21 @@ Global
 		{DE6EAA14-0D69-4D43-A502-6BCADC41C13E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE6EAA14-0D69-4D43-A502-6BCADC41C13E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE6EAA14-0D69-4D43-A502-6BCADC41C13E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC7E7AAB-E45B-4695-843D-6A679815407A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC7E7AAB-E45B-4695-843D-6A679815407A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC7E7AAB-E45B-4695-843D-6A679815407A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC7E7AAB-E45B-4695-843D-6A679815407A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A88838C-A4DC-4844-8828-87F2F866C536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A88838C-A4DC-4844-8828-87F2F866C536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A88838C-A4DC-4844-8828-87F2F866C536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A88838C-A4DC-4844-8828-87F2F866C536}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DC7E7AAB-E45B-4695-843D-6A679815407A} = {8AEA6469-5FE1-416F-B16E-50D2A8315806}
+		{6A88838C-A4DC-4844-8828-87F2F866C536} = {8AEA6469-5FE1-416F-B16E-50D2A8315806}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {859CE1AE-172E-4C3B-947A-CD66075BE820}

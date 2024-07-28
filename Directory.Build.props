@@ -4,7 +4,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<StartWorkingDirectory>..\src</StartWorkingDirectory>
+		<StartWorkingDirectory Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">..\src</StartWorkingDirectory>
 		<AssemblyName Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">LLamaWorker</AssemblyName>
 		<RootNamespace Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">LLamaWorker</RootNamespace>
 	</PropertyGroup>
