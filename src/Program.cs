@@ -111,6 +111,11 @@ namespace LLamaWorker
                 app.Use(async (context, next) =>
                 {
                     var found = context.Request.Headers.TryGetValue("Authorization", out var key);
+                    // 不存在，尝试取一下 api-key
+                    if (!found)
+                    {
+                        found = context.Request.Headers.TryGetValue("api-key", out key);
+                    }
 
                     key = key.ToString().Split(" ")[^1];
 
