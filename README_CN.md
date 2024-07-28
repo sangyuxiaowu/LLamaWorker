@@ -27,7 +27,80 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 
 下载并解压后，修改 `appsettings.json` 文件中的配置，即可运行软件并开始使用。
 
-## 快速开始
+> 对于其他后端，您也可以下载 `Vulkan` 版本，前往 [llama.cpp](https://github.com/ggerganov/llama.cpp/releases) 下载对应的编译版本，替换相关类库即可。亦可自行编译 `llama.cpp` 项目获得所需的类库。
+
+## 函数调用
+
+LLamaWorker 支持函数调用，目前在配置文件中提供了三个模板，已经测试了 `Qwen2` 和 `Llama3.1` 的函数调用效果。
+
+函数调用兼容 OpenAI 的 API，当前仅在非流式响应中支持函数调用，您可以通过以下 JSON 请求进行测试：
+
+`POST /v1/chat/completions`
+
+```json
+Content-Type: application/json
+
+{
+  "model": "default",
+  "messages": [
+    {
+      "role": "user",
+      "content": "北京和上海哪里气温高？"
+    }
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "GetWeatherPlugin-GetCurrentTemperature",
+        "description": "获取指定城市的当前气温。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "city"
+          ],
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "城市名称"
+            }
+          }
+        }
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "EmailPlugin-SendEmail",
+        "description": "向收件人发送电子邮件。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "recipientEmails",
+            "subject",
+            "body"
+          ],
+          "properties": {
+            "recipientEmails": {
+              "type": "string",
+              "description": "以分号分隔的收件人电子邮件列表"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "type": "function"
+    }
+  ],
+  "tool_choice": "auto"
+}
+```
+
+## 源码编译
 
 1. 克隆仓库到本地
    ```bash

@@ -27,7 +27,80 @@ A Vulkan backend compiled version is provided in the release, you can download t
 
 After downloading and unzipping, modify the configuration in the `appsettings.json` file, and you can run the software and start using it.
 
-## Quick Start
+> For other backends, you can also download the `Vulkan` version, go to [llama.cpp](https://github.com/ggerganov/llama.cpp/releases) to download the corresponding compiled version, and replace the relevant libraries. You can also compile the `llama.cpp` project yourself to get the required libraries.
+
+## Function Call
+
+LLamaWorker supports function calls, and currently provides three templates in the configuration file, and has tested the function call effect of `Qwen2` and `Llama3.1`.
+
+Function calls are compatible with OpenAI's API, and currently only support function calls in non-streaming responses. You can test it with the following JSON request:
+
+`POST /v1/chat/completions`
+
+```json
+Content-Type: application/json
+
+{
+  "model": "default",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Where is the temperature high between Beijing and Shanghai?"
+    }
+  ],
+  "tools": [
+    {
+      "function": {
+        "name": "GetWeatherPlugin-GetCurrentTemperature",
+        "description": "Get the current temperature of the specified city。",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "city"
+          ],
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "City Name"
+            }
+          }
+        }
+      },
+      "type": "function"
+    },
+    {
+      "function": {
+        "name": "EmailPlugin-SendEmail",
+        "description": "Send an email to the recipient.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "recipientEmails",
+            "subject",
+            "body"
+          ],
+          "properties": {
+            "recipientEmails": {
+              "type": "string",
+              "description": "A recipient email list separated by semicolons"
+            },
+            "subject": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "type": "function"
+    }
+  ],
+  "tool_choice": "auto"
+}
+```
+
+## Compile and Run
 
 1. Clone the repository locally
    ```bash
