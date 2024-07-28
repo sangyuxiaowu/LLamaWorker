@@ -38,8 +38,6 @@ Function calls are compatible with OpenAI's API, and currently only support func
 `POST /v1/chat/completions`
 
 ```json
-Content-Type: application/json
-
 {
   "model": "default",
   "messages": [
