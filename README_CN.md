@@ -38,8 +38,6 @@ LLamaWorker 支持函数调用，目前在配置文件中提供了三个模板�
 `POST /v1/chat/completions`
 
 ```json
-Content-Type: application/json
-
 {
   "model": "default",
   "messages": [
