@@ -31,7 +31,7 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 
 ## 函数调用
 
-LLamaWorker 支持函数调用，目前在配置文件中提供了三个模板，已经测试了 `Qwen2` 和 `Llama3.1` 的函数调用效果。
+LLamaWorker 支持函数调用，目前在配置文件中提供了三个模板，已经测试了 `Phi-3`，`Qwen2` 和 `Llama3.1` 的函数调用效果。
 
 函数调用兼容 OpenAI 的 API，当前仅在非流式响应中支持函数调用，您可以通过以下 JSON 请求进行测试：
 

@@ -31,7 +31,7 @@ After downloading and unzipping, modify the configuration in the `appsettings.js
 
 ## Function Call
 
-LLamaWorker supports function calls, and currently provides three templates in the configuration file, and has tested the function call effect of `Qwen2` and `Llama3.1`.
+LLamaWorker supports function calls, and currently provides three templates in the configuration file, and has tested the function call effect of `Phi-3`, `Qwen2` and `Llama3.1`.
 
 Function calls are compatible with OpenAI's API, and currently only support function calls in non-streaming responses. You can test it with the following JSON request:
 
