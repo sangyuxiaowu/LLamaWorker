@@ -2,6 +2,7 @@
 using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
 using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 using Timer = System.Timers.Timer;
 
 namespace LLamaWorker.Services
@@ -15,8 +16,10 @@ namespace LLamaWorker.Services
         private readonly ILogger<LLmModelService> _logger;
         private readonly ToolPromptGenerator _toolPromptGenerator;
 
+        ///<inheritdoc/>
         public bool IsSupportEmbedding => _llmService.IsSupportEmbedding;
 
+        ///<inheritdoc/>
         public LLmModelDecorator(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger, ToolPromptGenerator toolPromptGenerator)
         {
             _logger = logger;
@@ -35,12 +38,13 @@ namespace LLamaWorker.Services
             }
         }
 
-        public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request)
+        ///<inheritdoc/>
+        public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request, CancellationToken cancellationToken)
         {
             try
             {
                 BeginUseModel();
-                return await _llmService.CreateChatCompletionAsync(request);
+                return await _llmService.CreateChatCompletionAsync(request, cancellationToken);
             }
             finally
             {
@@ -49,12 +53,13 @@ namespace LLamaWorker.Services
             }
         }
 
-        public async IAsyncEnumerable<string> CreateChatCompletionStreamAsync(ChatCompletionRequest request)
+        ///<inheritdoc/>
+        public async IAsyncEnumerable<string> CreateChatCompletionStreamAsync(ChatCompletionRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             try
             {
                 BeginUseModel();
-                await foreach (var item in _llmService.CreateChatCompletionStreamAsync(request))
+                await foreach (var item in _llmService.CreateChatCompletionStreamAsync(request, cancellationToken))
                 {
                     yield return item;
                 }
@@ -66,12 +71,13 @@ namespace LLamaWorker.Services
             }
         }
 
-        public async Task<CompletionResponse> CreateCompletionAsync(CompletionRequest request)
+        ///<inheritdoc/>
+        public async Task<CompletionResponse> CreateCompletionAsync(CompletionRequest request, CancellationToken cancellationToken)
         {
             try
             {
                 BeginUseModel();
-                return await _llmService.CreateCompletionAsync(request);
+                return await _llmService.CreateCompletionAsync(request, cancellationToken);
             }
             finally
             {
@@ -80,12 +86,13 @@ namespace LLamaWorker.Services
             }
         }
 
-        public async IAsyncEnumerable<string> CreateCompletionStreamAsync(CompletionRequest request)
+        ///<inheritdoc/>
+        public async IAsyncEnumerable<string> CreateCompletionStreamAsync(CompletionRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             try
             {
                 BeginUseModel();
-                await foreach (var item in _llmService.CreateCompletionStreamAsync(request))
+                await foreach (var item in _llmService.CreateCompletionStreamAsync(request, cancellationToken))
                 {
                     yield return item;
                 }
@@ -97,12 +104,13 @@ namespace LLamaWorker.Services
             }
         }
 
-        public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request)
+        ///<inheritdoc/>
+        public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request, CancellationToken cancellationToken)
         {
             try
             {
                 BeginUseModel();
-                return await _llmService.CreateEmbeddingAsync(request);
+                return await _llmService.CreateEmbeddingAsync(request, cancellationToken);
             }
             finally
             {
@@ -112,6 +120,7 @@ namespace LLamaWorker.Services
 
         }
 
+        ///<inheritdoc/>
         public IReadOnlyDictionary<string, string> GetModelInfo()
         {
             try
@@ -127,6 +136,7 @@ namespace LLamaWorker.Services
 
         }
 
+        ///<inheritdoc/>
         public void InitModelIndex()
         {
             if (GlobalSettings.IsModelLoaded && _modelUsageCount != 0)
@@ -137,18 +147,20 @@ namespace LLamaWorker.Services
             _llmService.InitModelIndex();
         }
 
+        ///<inheritdoc/>
         public void Dispose()
         {
             _llmService.Dispose();
         }
 
+        ///<inheritdoc/>
         public void DisposeModel()
         {
             _llmService.DisposeModel();
         }
 
         // 资源释放计时器
-        private Timer _idleTimer;
+        private Timer? _idleTimer;
         private DateTime _lastUsedTime;
         private readonly TimeSpan _idleThreshold;
 

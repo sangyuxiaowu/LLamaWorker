@@ -41,7 +41,7 @@
         /// <summary>
         /// 模型生成的完成消息
         /// </summary>
-        public string text { get; set; } = string.Empty;
+        public string? text { get; set; } = string.Empty;
 
     }
 }
