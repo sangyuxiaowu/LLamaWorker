@@ -38,12 +38,13 @@ namespace LLamaWorker.Controllers
         /// 创建嵌入
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         [HttpPost("/v1/embeddings")]
         [HttpPost("/embeddings")]
         [HttpPost("/openai/deployments/{model}/embeddings")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EmbeddingResponse))]
-        public async Task<IResult> CreateEmbeddingAsync([FromBody] EmbeddingRequest request)
+        public async Task<IResult> CreateEmbeddingAsync([FromBody] EmbeddingRequest request, CancellationToken cancellationToken)
         {
             try
             {
@@ -54,7 +55,7 @@ namespace LLamaWorker.Controllers
                 // 使用模型服务创建嵌入
                 if (_modelService.IsSupportEmbedding)
                 {
-                    var response = await _modelService.CreateEmbeddingAsync(request);
+                    var response = await _modelService.CreateEmbeddingAsync(request, cancellationToken);
                     return Results.Ok(response);
                 }
                 else

@@ -5,6 +5,7 @@ using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
 using LLamaWorker.Transform;
 using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -93,6 +94,7 @@ namespace LLamaWorker.Services
         /// </summary>
         /// <param name="options">模型配置列表</param>
         /// <param name="logger">日志</param>
+        /// <param name="toolPromptGenerator">工具提示词生成器</param>
         public LLmModelService(IOptions<List<LLmModelSettings>> options, ILogger<LLmModelService> logger, ToolPromptGenerator toolPromptGenerator)
         {
             _logger = logger;
@@ -120,8 +122,9 @@ namespace LLamaWorker.Services
         /// 聊天完成
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request)
+        public async Task<ChatCompletionResponse> CreateChatCompletionAsync(ChatCompletionRequest request, CancellationToken cancellationToken)
         {
             // 没有消息
             if (request.messages is null || request.messages.Length == 0)
@@ -141,7 +144,7 @@ namespace LLamaWorker.Services
 
             _logger.LogDebug("Prompt context: {prompt_context}", chatHistory.ChatHistory);
 
-            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams))
+            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
             {
                 _logger.LogTrace("Message: {output}", output);
                 result.Append(output);
@@ -158,7 +161,7 @@ namespace LLamaWorker.Services
                 var tools = _toolPromptGenerator.GenerateToolCall(result.ToString(), _usedset.ToolPrompt.Index);
                 if (tools.Count > 0)
                 {
-                    _logger.LogDebug("Tool calls: {tools}", tools.Select(x=>x.name));
+                    _logger.LogDebug("Tool calls: {tools}", tools.Select(x => x.name));
                     return new ChatCompletionResponse
                     {
                         id = $"chatcmpl-{Guid.NewGuid():N}",
@@ -224,8 +227,9 @@ namespace LLamaWorker.Services
         /// 流式生成-聊天完成
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async IAsyncEnumerable<string> CreateChatCompletionStreamAsync(ChatCompletionRequest request)
+        public async IAsyncEnumerable<string> CreateChatCompletionStreamAsync(ChatCompletionRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // 没有消息
             if (request.messages is null || request.messages.Length == 0)
@@ -264,7 +268,7 @@ namespace LLamaWorker.Services
             yield return $"data: {chunk}\n\n";
 
             // 处理模型输出
-            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams))
+            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
             {
                 _logger.LogDebug("Message: {output}", output);
                 chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
@@ -365,14 +369,34 @@ namespace LLamaWorker.Services
         /// 创建嵌入
         /// </summary>
         /// <param name="request">请求内容</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>词嵌入</returns>
-        public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request)
+        public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request, CancellationToken cancellationToken)
         {
 
             var embeddings = new List<float[]>();
+
+            if (request.input is null || request.input.Length == 0)
+            {
+                _logger.LogWarning("No input.");
+                return new EmbeddingResponse();
+            }
+
+            if (!_usedset.ModelParams.Embeddings)
+            {
+                _logger.LogWarning("Model does not support embeddings.");
+                return new EmbeddingResponse();
+            }
+
+            if (_embedder == null)
+            {
+                _logger.LogWarning("Embedder is null.");
+                return new EmbeddingResponse();
+            }
+
             foreach (var text in request.input)
             {
-                var embedding = await _embedder.GetEmbeddings(text);
+                var embedding = await _embedder.GetEmbeddings(text, cancellationToken);
                 embeddings.Add(embedding);
             }
 
@@ -399,7 +423,7 @@ namespace LLamaWorker.Services
         /// <summary>
         /// 提示完成
         /// </summary>
-        public async Task<CompletionResponse> CreateCompletionAsync(CompletionRequest request)
+        public async Task<CompletionResponse> CreateCompletionAsync(CompletionRequest request, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(request.prompt))
             {
@@ -411,7 +435,7 @@ namespace LLamaWorker.Services
             var result = new StringBuilder();
 
             var completion_tokens = 0;
-            await foreach (var output in ex.InferAsync(request.prompt, genParams))
+            await foreach (var output in ex.InferAsync(request.prompt, genParams, cancellationToken))
             {
                 _logger.LogDebug("Message: {output}", output);
                 result.Append(output);
@@ -445,8 +469,9 @@ namespace LLamaWorker.Services
         /// 流式生成-提示完成
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async IAsyncEnumerable<string> CreateCompletionStreamAsync(CompletionRequest request)
+        public async IAsyncEnumerable<string> CreateCompletionStreamAsync(CompletionRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(request.prompt))
             {
@@ -474,7 +499,7 @@ namespace LLamaWorker.Services
                 }
             }, _jsonSerializerOptions);
             yield return $"data: {chunk}\n\n";
-            await foreach (var output in ex.InferAsync(request.prompt, genParams))
+            await foreach (var output in ex.InferAsync(request.prompt, genParams, cancellationToken))
             {
                 _logger.LogDebug("Message: {output}", output);
                 chunk = JsonSerializer.Serialize(new CompletionResponse

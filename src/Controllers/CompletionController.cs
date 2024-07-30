@@ -29,6 +29,7 @@ namespace LLamaWorker.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <param name="service"></param>
+        /// <param name="cancellationToken"></param>
         /// <remarks>
         /// 默认不开启流式，需要主动设置 stream:true
         /// </remarks>
@@ -40,7 +41,7 @@ namespace LLamaWorker.Controllers
         [Produces("text/event-stream")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CompletionResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
-        public async Task<IResult> CreateCompletionAsync([FromBody] CompletionRequest request, [FromServices] ILLmModelService service)
+        public async Task<IResult> CreateCompletionAsync([FromBody] CompletionRequest request, [FromServices] ILLmModelService service, CancellationToken cancellationToken)
         {
             try
             {
@@ -48,7 +49,7 @@ namespace LLamaWorker.Controllers
                 {
 
                     string first = " ";
-                    await foreach (var item in service.CreateCompletionStreamAsync(request))
+                    await foreach (var item in service.CreateCompletionStreamAsync(request, cancellationToken))
                     {
                         if (first == " ")
                         {
@@ -73,7 +74,7 @@ namespace LLamaWorker.Controllers
                 }
                 else
                 {
-                    return Results.Ok(await service.CreateCompletionAsync(request));
+                    return Results.Ok(await service.CreateCompletionAsync(request, cancellationToken));
                 }
 
             }

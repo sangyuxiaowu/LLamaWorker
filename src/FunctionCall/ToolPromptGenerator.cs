@@ -154,7 +154,7 @@ namespace LLamaWorker.FunctionCall
             var descriptionForModel = function.description ?? string.Empty;
 
             // 函数无参数
-            if(function.parameters == null || function.parameters.properties == null || function.parameters.properties.Count == 0)
+            if (function.parameters == null || function.parameters.properties == null || function.parameters.properties.Count == 0)
             {
                 return string.Format(toolDescTemplate, nameForHuman, nameForModel, descriptionForModel, string.Empty).Trim();
             }
