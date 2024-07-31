@@ -31,14 +31,18 @@ while (true)
     {
         ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
     };
-    var result = chatCompletionService.GetChatMessageContentsAsync(
+    var result = chatCompletionService.GetStreamingChatMessageContentsAsync(
         chatMessages,
         executionSettings: openAIPromptExecutionSettings,
         kernel: kernel);
 
     string fullMessage = "";
     System.Console.Write("Assistant > ");
-    Console.WriteLine(result.Result.FirstOrDefault()?.Content);
+    await foreach (var content in result)
+    {
+        System.Console.Write(content.Content);
+        fullMessage += content.Content;
+    }
     System.Console.WriteLine();
 
     chatMessages.AddAssistantMessage(fullMessage);
