@@ -247,6 +247,8 @@ namespace LLamaWorker.Services
 
             int index = 0;
 
+            _logger.LogDebug("Prompt context: {prompt_context}", chatHistory.ChatHistory);
+
             // 第一个消息，带着角色名称
             var chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
             {
@@ -275,7 +277,7 @@ namespace LLamaWorker.Services
             // 处理模型输出
             await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
             {
-                _logger.LogDebug("Message: {output}", output);
+                _logger.LogTrace("Message: {output}", output);
 
                 // 存在工具提示时
                 if (chatHistory.IsToolPromptEnabled)
@@ -290,6 +292,7 @@ namespace LLamaWorker.Services
                     toolActive = _toolPromptGenerator.IsToolActive(tokens, _usedset.ToolPrompt.Index);
                     if (toolActive)
                     {
+                        _logger.LogDebug("Tool is active.");
                         // 激活，继续拦截
                         tokens.Add(output);
                         continue;
@@ -462,10 +465,10 @@ namespace LLamaWorker.Services
 
             var messages = request.messages;
 
-            // 添加系统提示
-            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
+            // 添加默认配置的系统提示
+            if (!toolenabled && !string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
             {
-                _logger.LogInformation("Add system prompt.");
+                _logger.LogDebug("Add system prompt.");
                 messages = messages.Prepend(new ChatCompletionMessage
                 {
                     role = "system",
