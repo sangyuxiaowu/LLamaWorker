@@ -278,7 +278,8 @@ namespace LLamaWorker.Services
                 _logger.LogDebug("Message: {output}", output);
 
                 // 存在工具提示时
-                if (chatHistory.IsToolPromptEnabled) {
+                if (chatHistory.IsToolPromptEnabled)
+                {
                     // 激活工具提示后保持拦截，未激活时拦截前三个token
                     if (toolActive || tokens.Count < 3)
                     {

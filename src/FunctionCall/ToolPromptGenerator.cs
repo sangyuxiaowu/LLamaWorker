@@ -32,7 +32,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public bool IsToolActive(List<string> tokens, int tpl = 0)
         {
-            return string.Join("",tokens).Trim().StartsWith(_config[tpl].FN_NAME);
+            return string.Join("", tokens).Trim().StartsWith(_config[tpl].FN_NAME);
         }
 
         /// <summary>
