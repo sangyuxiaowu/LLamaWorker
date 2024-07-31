@@ -462,8 +462,8 @@ namespace LLamaWorker.Services
 
             var messages = request.messages;
 
-            // 添加系统提示
-            if (!string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
+            // 添加默认配置的系统提示
+            if (!toolenabled && !string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
             {
                 _logger.LogInformation("Add system prompt.");
                 messages = messages.Prepend(new ChatCompletionMessage
