@@ -267,10 +267,62 @@ namespace LLamaWorker.Services
             }, _jsonSerializerOptions);
             yield return $"data: {chunk}\n\n";
 
+            // 拦截前三个 token 存入
+            List<string> tokens = new();
+            // 工具返回是否激活
+            bool toolActive = false;
+
             // 处理模型输出
             await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
             {
                 _logger.LogDebug("Message: {output}", output);
+
+                // 存在工具提示时
+                if (chatHistory.IsToolPromptEnabled) {
+                    // 激活工具提示后保持拦截，未激活时拦截前三个token
+                    if (toolActive || tokens.Count < 3)
+                    {
+                        tokens.Add(output);
+                        continue;
+                    }
+                    // 检查是否有工具提示
+                    toolActive = _toolPromptGenerator.IsToolActive(tokens, _usedset.ToolPrompt.Index);
+                    if (toolActive)
+                    {
+                        // 激活，继续拦截
+                        tokens.Add(output);
+                        continue;
+                    }
+                    else
+                    {
+                        // 未激活，变更工具启用状态
+                        chatHistory.IsToolPromptEnabled = false;
+                        // 并快速发送，之前的消息
+                        foreach (var token in tokens)
+                        {
+                            chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
+                            {
+                                id = id,
+                                created = created,
+                                model = request.model,
+                                choices = [
+                                    new ChatCompletionChunkResponseChoice
+                                    {
+                                        index = ++index,
+                                        delta = new ChatCompletionMessage
+                                        {
+                                            role = null,
+                                            content = token
+                                        },
+                                        finish_reason = null
+                                    }
+                                ]
+                            }, _jsonSerializerOptions);
+                            yield return $"data: {chunk}\n\n";
+                        }
+                    }
+                }
+
                 chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
                 {
                     id = id,
@@ -291,6 +343,87 @@ namespace LLamaWorker.Services
 
                 }, _jsonSerializerOptions);
                 yield return $"data: {chunk}\n\n";
+            }
+
+            // 是否激活了工具提示拦截
+            if (toolActive)
+            {
+                var result = string.Join("", tokens).Trim();
+                var tools = _toolPromptGenerator.GenerateToolCall(result, _usedset.ToolPrompt.Index);
+                if (tools.Count > 0)
+                {
+                    _logger.LogDebug("Tool calls: {tools}", tools.Select(x => x.name));
+                    chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
+                    {
+                        id = id,
+                        created = created,
+                        model = request.model,
+                        choices = [
+                            new ChatCompletionChunkResponseChoice
+                            {
+                                index = ++index,
+                                delta = new ChatCompletionMessage
+                                {
+                                    role = null,
+                                    tool_calls = tools.Select(x => new ToolMeaasge
+                                    {
+                                        id = $"call_{Guid.NewGuid():N}",
+                                        function = new ToolMeaasgeFuntion
+                                        {
+                                            name = x.name,
+                                            arguments = x.arguments
+                                        }
+                                    }).ToArray()
+                                },
+                                finish_reason = "tool_calls"
+                            }
+                        ]
+                    }, _jsonSerializerOptions);
+                    yield return $"data: {chunk}\n\n";
+                }
+                else
+                {
+                    foreach (var token in tokens)
+                    {
+                        chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
+                        {
+                            id = id,
+                            created = created,
+                            model = request.model,
+                            choices = [
+                                new ChatCompletionChunkResponseChoice
+                                {
+                                    index = ++index,
+                                    delta = new ChatCompletionMessage
+                                    {
+                                        role = null,
+                                        content = token
+                                    },
+                                    finish_reason = null
+                                }
+                            ]
+                        }, _jsonSerializerOptions);
+                        yield return $"data: {chunk}\n\n";
+                    }
+                }
+                // 结束
+                chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
+                {
+                    id = id,
+                    created = created,
+                    model = request.model,
+                    choices = [
+                        new ChatCompletionChunkResponseChoice
+                    {
+                        index = tools.Count > 0 ? 0 : ++index,
+                        delta = null,
+                        finish_reason = tools.Count > 0 ? "tool_calls":"stop"
+                    }
+                    ]
+                }, _jsonSerializerOptions);
+                yield return $"data: {chunk}\n\n";
+                yield return "data: [DONE]\n\n";
+                yield break;
             }
 
             // 结束
