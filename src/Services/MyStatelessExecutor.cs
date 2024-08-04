@@ -57,6 +57,7 @@ namespace LLama
             // Create an inference context which will be disposed when this method exits
             using var context = _weights.CreateContext(_params, _logger);
             Context = context;
+
             // Reset the sampling pipeline (if there is one)
             inferenceParams?.SamplingPipeline?.Reset();
 
@@ -88,29 +89,18 @@ namespace LLama
             if (r != DecodeResult.Ok)
                 throw new LLamaDecodeError(r);
 
-            // Begin loop, evaluating one token at a time
-            var mu = (float?)null;
-            var max_tokens = inferenceParams.MaxTokens < 0 ? int.MaxValue : inferenceParams.MaxTokens;
-            for (var i = 0; i < max_tokens && !cancellationToken.IsCancellationRequested; i++)
-            {
-                LLamaToken id;
-                if (inferenceParams.SamplingPipeline is not null)
-                {
-                    id = inferenceParams.SamplingPipeline.Sample(Context.NativeHandle, Context.NativeHandle.GetLogitsIth(_batch.TokenCount - 1), lastTokens);
-                }
-                else
-                {
-                    // Penalize the generated tokens by various penalties
-                    var tokenDataArray = Context.ApplyPenalty(_batch.TokenCount - 1, lastTokens, inferenceParams.LogitBias, repeat_last_n,
-                        inferenceParams.RepeatPenalty, inferenceParams.FrequencyPenalty, inferenceParams.PresencePenalty, inferenceParams.PenalizeNL);
+            // use the explicitly supplied pipeline, if there is one. Otherwise construct a suitable one.
+            var pipeline = inferenceParams.SamplingPipeline;
+            if (pipeline == null)
+                pipeline = new DefaultSamplingPipeline();
 
-                    // Sample a single token
-                    id = Context.Sample(
-                        tokenDataArray, ref mu, inferenceParams.Temperature, inferenceParams.Mirostat, inferenceParams.MirostatTau,
-                        inferenceParams.MirostatEta, inferenceParams.TopK, inferenceParams.TopP, inferenceParams.TfsZ, inferenceParams.TypicalP, inferenceParams.Grammar,
-                        inferenceParams.MinP
-                    );
-                }
+            // Begin loop, evaluating one token at a time
+            var maxTokens = inferenceParams.MaxTokens < 0 ? int.MaxValue : inferenceParams.MaxTokens;
+            for (var i = 0; i < maxTokens && !cancellationToken.IsCancellationRequested; i++)
+            {
+                // Sample with the pipeline
+                var id = pipeline.Sample(Context.NativeHandle, Context.NativeHandle.GetLogitsIth(_batch.TokenCount - 1), lastTokens);
+                pipeline.Accept(Context.NativeHandle, id);
 
                 // Check if this token should end generation
                 if (_weights.Tokens.IsEndOfGeneration(id))
