@@ -465,14 +465,15 @@ namespace LLamaWorker.Services
 
             var messages = request.messages;
 
-            // 添加默认配置的系统提示
-            if (!toolenabled && !string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
+            // 不存在系统消息时，若存在工具或者配置有默认系统提示，则添加系统提示
+            if ((toolenabled || !string.IsNullOrWhiteSpace(_usedset.SystemPrompt)) && messages.First()?.role != "system")
             {
                 _logger.LogDebug("Add system prompt.");
                 messages = messages.Prepend(new ChatCompletionMessage
                 {
                     role = "system",
-                    content = _usedset.SystemPrompt
+                    // 启用工具提示时，系统提示为空，让后续添加 toolPrompt
+                    content = toolenabled ? "" : _usedset.SystemPrompt
                 }).ToArray();
             }
 
