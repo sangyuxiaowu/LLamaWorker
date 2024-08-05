@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 
 namespace LLama
 {
+    // TODO: 该类存在大量过时的代码，需要进行重构
+
     /// <summary>
     /// This executor infer the input as one-time job. Previous inputs won't impact on the 
     /// response to current input.
@@ -92,7 +94,7 @@ namespace LLama
             // use the explicitly supplied pipeline, if there is one. Otherwise construct a suitable one.
             var pipeline = inferenceParams.SamplingPipeline;
             if (pipeline == null)
-                pipeline = new DefaultSamplingPipeline();
+                pipeline = inferenceParams.Create(ref pipeline);
 
             // Begin loop, evaluating one token at a time
             var maxTokens = inferenceParams.MaxTokens < 0 ? int.MaxValue : inferenceParams.MaxTokens;
