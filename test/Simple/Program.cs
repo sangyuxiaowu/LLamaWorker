@@ -4,10 +4,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
+int port = 5000;
+if (args.Length > 0 && int.TryParse(args[0], out int parsedPort))
+{
+    if (parsedPort > 0 && parsedPort < 65535)
+        port = parsedPort;
+}
+
 var builder = Kernel.CreateBuilder();
 builder.Services.AddLogging(c => c.SetMinimumLevel(LogLevel.Trace).AddConsole());
 
-builder.AddOpenAIChatCompletion("default", new OpenAIClient(new Uri("http://127.0.0.1:5000"), new Azure.AzureKeyCredential("key")));
+builder.AddOpenAIChatCompletion("default", new OpenAIClient(new Uri($"http://127.0.0.1:{port}"), new Azure.AzureKeyCredential("key")));
 
 var kernel = builder.Build();
 
