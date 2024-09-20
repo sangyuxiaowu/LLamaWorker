@@ -465,8 +465,8 @@ namespace LLamaWorker.Services
 
             var messages = request.messages;
 
-            // 添加默认配置的系统提示
-            if (!toolenabled && !string.IsNullOrWhiteSpace(_usedset.SystemPrompt) && messages.First()?.role != "system")
+            // 不存在系统消息时，需要添加默认或者空白的系统提示
+            if ((toolenabled || !string.IsNullOrWhiteSpace(_usedset.SystemPrompt)) && messages.First()?.role != "system")
             {
                 _logger.LogDebug("Add system prompt.");
                 messages = messages.Prepend(new ChatCompletionMessage
@@ -511,7 +511,7 @@ namespace LLamaWorker.Services
         public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request, CancellationToken cancellationToken)
         {
 
-            var embeddings = new List<float[]>();
+            var embeddings = new List<EmbeddingObject>();
 
             if (request.input is null || request.input.Length == 0)
             {
@@ -531,19 +531,19 @@ namespace LLamaWorker.Services
                 return new EmbeddingResponse();
             }
 
+            int index = 0;
             foreach (var text in request.input)
             {
-                var embedding = await _embedder.GetEmbeddings(text, cancellationToken);
-                embeddings.Add(embedding);
+                embeddings.Add(new EmbeddingObject
+                {
+                    embedding = await _embedder.GetEmbeddings(text, cancellationToken),
+                    index = index++
+                });
             }
 
             return new EmbeddingResponse
             {
-                data = embeddings.Select((x, index) => new EmbeddingObject
-                {
-                    embedding = x,
-                    index = index
-                }).ToArray(),
+                data = embeddings.ToArray(),
                 model = request.model
             };
         }

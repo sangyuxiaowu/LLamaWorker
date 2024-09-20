@@ -10,12 +10,12 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">
-		<PackageReference Include="Nerdbank.GitVersioning" Version="3.6.139" PrivateAssets="all" />
+		<PackageReference Include="Nerdbank.GitVersioning" Version="3.6.143" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">
-		<PackageReference Include="LLamaSharp" Version="0.14.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+		<PackageReference Include="LLamaSharp" Version="0.16.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
 		<ProjectReference Include="..\LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj" />
 		<Compile Include="..\src\**\*.cs" />
 		<None Include="..\src\LLamaWorker.http" />

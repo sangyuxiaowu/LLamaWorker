@@ -6,10 +6,17 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 
+int port = 5000;
+if (args.Length > 0 && int.TryParse(args[0], out int parsedPort))
+{
+    if (parsedPort > 0 && parsedPort < 65535)
+        port = parsedPort;
+}
+
 var builder = Kernel.CreateBuilder();
 builder.Services.AddLogging(c => c.SetMinimumLevel(LogLevel.Trace).AddConsole());
 
-builder.AddOpenAIChatCompletion("default", new OpenAIClient(new Uri("http://127.0.0.1:5114"), new Azure.AzureKeyCredential("key")));
+builder.AddOpenAIChatCompletion("default", new OpenAIClient(new Uri($"http://127.0.0.1:{port}"), new Azure.AzureKeyCredential("key")));
 
 builder.Plugins.AddFromType<EmailPlugin>();
 builder.Plugins.AddFromType<WeatherPlugin>();
