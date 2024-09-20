@@ -511,7 +511,7 @@ namespace LLamaWorker.Services
         public async Task<EmbeddingResponse> CreateEmbeddingAsync(EmbeddingRequest request, CancellationToken cancellationToken)
         {
 
-            var embeddings = new List<float[]>();
+            var embeddings = new List<EmbeddingObject>();
 
             if (request.input is null || request.input.Length == 0)
             {
@@ -531,19 +531,19 @@ namespace LLamaWorker.Services
                 return new EmbeddingResponse();
             }
 
+            int index = 0;
             foreach (var text in request.input)
             {
-                var embedding = await _embedder.GetEmbeddings(text, cancellationToken);
-                embeddings.Add(embedding);
+                embeddings.Add(new EmbeddingObject
+                {
+                    embedding = await _embedder.GetEmbeddings(text, cancellationToken),
+                    index = index++
+                });
             }
 
             return new EmbeddingResponse
             {
-                data = embeddings.Select((x, index) => new EmbeddingObject
-                {
-                    embedding = x,
-                    index = index
-                }).ToArray(),
+                data = embeddings.ToArray(),
                 model = request.model
             };
         }
