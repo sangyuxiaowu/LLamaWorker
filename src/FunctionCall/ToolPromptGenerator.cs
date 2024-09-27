@@ -160,6 +160,18 @@ namespace LLamaWorker.FunctionCall
 
         private string GetFunctionDescription(FunctionInfo function, string toolDescTemplate)
         {
+            // 如果没有工具描述模板，则直接返回序列化的函数信息
+            if (string.IsNullOrWhiteSpace(toolDescTemplate))
+            {
+                return JsonSerializer.Serialize(new{
+                    type = "function",
+                    function = function
+                }, new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+                });
+            }
+
             var nameForHuman = function.name;
             var nameForModel = function.name;
             var descriptionForModel = function.description ?? string.Empty;
