@@ -208,6 +208,7 @@ namespace LLamaWorker.Services
                     new ChatCompletionResponseChoice
                     {
                         index = 0,
+                        finish_reason = completion_tokens >= request.max_tokens ? "length" : "stop",
                         message = new ChatCompletionMessage
                         {
                             role = "assistant",
@@ -714,8 +715,8 @@ namespace LLamaWorker.Services
                 AntiPrompts = stop,
                 SamplingPipeline = new DefaultSamplingPipeline
                 {
-                Temperature = request.temperature,
-                TopP = request.top_p,
+                    Temperature = request.temperature,
+                    TopP = request.top_p,
                     AlphaPresence = request.presence_penalty,
                     AlphaFrequency = request.frequency_penalty
                 }
