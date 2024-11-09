@@ -1,5 +1,6 @@
 ﻿using LLama;
 using LLama.Common;
+using LLama.Sampling;
 using LLamaWorker.Config;
 using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
@@ -207,6 +208,7 @@ namespace LLamaWorker.Services
                     new ChatCompletionResponseChoice
                     {
                         index = 0,
+                        finish_reason = completion_tokens >= request.max_tokens ? "length" : "stop",
                         message = new ChatCompletionMessage
                         {
                             role = "assistant",
@@ -711,10 +713,13 @@ namespace LLamaWorker.Services
             {
                 MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : 512,
                 AntiPrompts = stop,
-                Temperature = request.temperature,
-                TopP = request.top_p,
-                PresencePenalty = request.presence_penalty,
-                FrequencyPenalty = request.frequency_penalty,
+                SamplingPipeline = new DefaultSamplingPipeline
+                {
+                    Temperature = request.temperature,
+                    TopP = request.top_p,
+                    AlphaPresence = request.presence_penalty,
+                    AlphaFrequency = request.frequency_penalty
+                }
             };
             return inferenceParams;
         }

@@ -1,4 +1,5 @@
 ﻿using Azure.AI.OpenAI;
+using System.ClientModel;
 using FunctionCall.Agent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,7 @@ if (args.Length > 0 && int.TryParse(args[0], out int parsedPort))
 var builder = Kernel.CreateBuilder();
 builder.Services.AddLogging(c => c.SetMinimumLevel(LogLevel.Trace).AddConsole());
 
-builder.AddOpenAIChatCompletion("default", new OpenAIClient(new Uri($"http://127.0.0.1:{port}"), new Azure.AzureKeyCredential("key")));
+builder.AddOpenAIChatCompletion("default", new AzureOpenAIClient(new Uri($"http://127.0.0.1:{port}"), new ApiKeyCredential("key")));
 
 builder.Plugins.AddFromType<EmailPlugin>();
 builder.Plugins.AddFromType<WeatherPlugin>();

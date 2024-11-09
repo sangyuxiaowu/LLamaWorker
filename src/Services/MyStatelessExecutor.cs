@@ -1,13 +1,16 @@
 using LLama.Abstractions;
 using LLama.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using LLama.Exceptions;
 using LLama.Native;
-using LLama.Sampling;
-using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 
 namespace LLama
 {
-    // TODO: 该类存在大量过时的代码，需要进行重构
 
     /// <summary>
     /// This executor infer the input as one-time job. Previous inputs won't impact on the 
@@ -72,16 +75,9 @@ namespace LLama
             var decoder = new StreamingTokenDecoder(Context);
             var antiprocessor = new AntipromptProcessor(inferenceParams.AntiPrompts);
 
-            // Keep track of the last N tokens emitted
-            var repeat_last_n = Math.Max(0, inferenceParams.RepeatLastTokensCount < 0 ? _weights.ContextSize : inferenceParams.RepeatLastTokensCount);
-            var lastTokens = new List<LLamaToken>(repeat_last_n);
-            for (var i = 0; i < repeat_last_n; i++)
-                lastTokens.Add(0);
-
             // Tokenize the prompt
             var tokens = Context.Tokenize(prompt, special: true).ToList();
             PromptTokens = tokens.Count;
-            lastTokens.AddRange(tokens);
 
             // Evaluate the prompt, in chunks smaller than the max batch size
             var n_past = 0;
@@ -91,18 +87,12 @@ namespace LLama
             if (r != DecodeResult.Ok)
                 throw new LLamaDecodeError(r);
 
-            // use the explicitly supplied pipeline, if there is one. Otherwise construct a suitable one.
-            var pipeline = inferenceParams.SamplingPipeline;
-            if (pipeline == null)
-                pipeline = inferenceParams.Create(ref pipeline);
-
             // Begin loop, evaluating one token at a time
             var maxTokens = inferenceParams.MaxTokens < 0 ? int.MaxValue : inferenceParams.MaxTokens;
             for (var i = 0; i < maxTokens && !cancellationToken.IsCancellationRequested; i++)
             {
                 // Sample with the pipeline
-                var id = pipeline.Sample(Context.NativeHandle, Context.NativeHandle.GetLogitsIth(_batch.TokenCount - 1), lastTokens);
-                pipeline.Accept(Context.NativeHandle, id);
+                var id = inferenceParams.SamplingPipeline.Sample(Context.NativeHandle, _batch.TokenCount - 1);
 
                 // Check if this token should end generation
                 if (_weights.Tokens.IsEndOfGeneration(id))
@@ -117,7 +107,6 @@ namespace LLama
                 if (antiprocessor.Add(decoded))
                     break;
 
-                lastTokens.Add(id);
                 tokens.Clear();
                 tokens.Add(id);
 
