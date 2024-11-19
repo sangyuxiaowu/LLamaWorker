@@ -718,7 +718,8 @@ namespace LLamaWorker.Services
                     Temperature = request.temperature,
                     TopP = request.top_p,
                     AlphaPresence = request.presence_penalty,
-                    AlphaFrequency = request.frequency_penalty
+                    AlphaFrequency = request.frequency_penalty,
+                    Seed = (uint)Random.Shared.Next()
                 }
             };
             return inferenceParams;

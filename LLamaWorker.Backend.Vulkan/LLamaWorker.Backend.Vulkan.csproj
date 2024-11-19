@@ -1,10 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<ItemGroup>
-	  <Compile Remove="..\src\Services\IInferanceParamsExtensions.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="LLamaSharp.Backend.Vulkan" Version="0.19.0" />
 	</ItemGroup>
 
