@@ -158,6 +158,12 @@ namespace LLamaWorker.FunctionCall
             return $"\n\n{toolSystem}\n\n{toolPrompt}";
         }
 
+        /// <summary>
+        /// 生成函数描述
+        /// </summary>
+        /// <param name="function">函数信息</param>
+        /// <param name="toolDescTemplate">函数模板</param>
+        /// <returns>函数描述文本</returns>
         private string GetFunctionDescription(FunctionInfo function, string toolDescTemplate)
         {
             // 如果没有工具描述模板，则直接返回序列化的函数信息
