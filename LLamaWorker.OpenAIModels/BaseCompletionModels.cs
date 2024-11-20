@@ -71,6 +71,13 @@
         public float frequency_penalty { get; set; } = 0.0f;
 
         /// <summary>
+        /// 随机种子：用于控制模型生成的随机性。
+        /// 如果指定，系统将尽最大努力进行确定性采样，这样具有相同种子和参数的重复请求应该返回相同的结果。
+        /// </summary>
+        /// <example>null</example>
+        public uint? seed { get; set; }
+
+        /// <summary>
         /// 用户：最终用户的唯一标识符
         /// </summary>
         public string? user { get; set; }

@@ -719,7 +719,8 @@ namespace LLamaWorker.Services
                     TopP = request.top_p,
                     AlphaPresence = request.presence_penalty,
                     AlphaFrequency = request.frequency_penalty,
-                    Seed = (uint)Random.Shared.Next()
+                    // 确定性采样设置
+                    Seed = request.seed is null ? (uint)Random.Shared.Next() : request.seed.Value
                 }
             };
             return inferenceParams;

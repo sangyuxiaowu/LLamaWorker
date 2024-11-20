@@ -1,11 +1,11 @@
 ﻿using Azure.AI.OpenAI;
-using System.ClientModel;
 using FunctionCall.Agent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using System.ClientModel;
 
 int port = 5000;
 if (args.Length > 0 && int.TryParse(args[0], out int parsedPort))
