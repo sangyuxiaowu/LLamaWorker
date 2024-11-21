@@ -711,7 +711,7 @@ namespace LLamaWorker.Services
 
             InferenceParams inferenceParams = new InferenceParams()
             {
-                MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : 512,
+                MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : -1,
                 AntiPrompts = stop,
                 SamplingPipeline = new DefaultSamplingPipeline
                 {
