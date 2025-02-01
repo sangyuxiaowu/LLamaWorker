@@ -14,7 +14,7 @@ app.Run();
 
 static async Task<Blocks> CreateBlocks()
 {
-    using (var blocks = gr.Blocks(analyticsEnabled: false, title: "LLamaWorker"))
+    using (var blocks = gr.Blocks(analyticsEnabled: false))
     {
         gr.Markdown("# LLamaWorker");
         Textbox input, token;
@@ -303,4 +303,26 @@ static class Utils
     /// 模型配置信息
     /// </summary>
     public static ConfigModels config;
+}
+
+
+public record ConfigModels
+{
+    /// <summary>
+    /// 当前使用的模型
+    /// </summary>
+    public int Current { get; set; }
+    /// <summary>
+    /// 模型列表
+    /// </summary>
+    public List<ConfigModel> Models { get; set; }
+
+}
+
+public record ConfigModel
+{
+    /// <summary>
+    /// 模型名称
+    /// </summary>
+    public string Name { get; set; }
 }

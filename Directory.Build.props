@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -10,12 +10,12 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker'))">
-		<PackageReference Include="Nerdbank.GitVersioning" Version="3.6.146" PrivateAssets="all" />
+		<PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">
-		<PackageReference Include="LLamaSharp" Version="0.19.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+		<PackageReference Include="LLamaSharp" Version="0.20.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
 		<ProjectReference Include="..\LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj" />
 		<Compile Include="..\src\**\*.cs" />
 		<None Include="..\src\LLamaWorker.http" />

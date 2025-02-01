@@ -713,14 +713,20 @@ namespace LLamaWorker.Services
             {
                 MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : -1,
                 AntiPrompts = stop,
-                SamplingPipeline = new DefaultSamplingPipeline
+                SamplingPipeline = request.seed.HasValue ? new DefaultSamplingPipeline
                 {
                     Temperature = request.temperature,
                     TopP = request.top_p,
-                    AlphaPresence = request.presence_penalty,
-                    AlphaFrequency = request.frequency_penalty,
+                    PresencePenalty = request.presence_penalty,
+                    FrequencyPenalty = request.frequency_penalty,
                     // 确定性采样设置
-                    Seed = request.seed is null ? (uint)Random.Shared.Next() : request.seed.Value
+                    Seed = request.seed.Value
+                } : new DefaultSamplingPipeline
+                {
+                    Temperature = request.temperature,
+                    TopP = request.top_p,
+                    PresencePenalty = request.presence_penalty,
+                    FrequencyPenalty = request.frequency_penalty
                 }
             };
             return inferenceParams;
