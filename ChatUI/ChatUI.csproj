@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
-    <PackageReference Include="Gradio.Net.AspNetCore" Version="0.1.6" />
+    <PackageReference Include="Gradio.Net.AspNetCore" Version="0.5.0" />
 	<ProjectReference Include="..\LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj" />
   </ItemGroup>
 
