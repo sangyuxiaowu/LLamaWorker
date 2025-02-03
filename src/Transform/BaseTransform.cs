@@ -76,7 +76,7 @@ namespace LLamaWorker.Transform
                     if (systemAdd || toolWait) continue;
                     systemAdd = true;
                     // 模型不支持系统消息角色设定
-                    if (string.IsNullOrWhiteSpace(systemToken))
+                    if (string.IsNullOrEmpty(systemToken))
                     {
                         systemMessage = $"{message.content} {toolPrompt}";
                     }
