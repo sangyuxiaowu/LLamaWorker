@@ -21,6 +21,16 @@ namespace LLamaWorker.Transform
         protected virtual string assistantToken => "<|im_start|>assistant";
 
         /// <summary>
+        /// 对话轮次结束标记
+        /// </summary>
+        protected virtual string endSentence => "";
+
+        /// <summary>
+        /// 思考标记
+        /// </summary>
+        protected virtual string thinkToken => "";
+
+        /// <summary>
         /// 系统标记
         /// </summary>
         protected virtual string systemToken => "<|im_start|>system";
@@ -100,7 +110,7 @@ namespace LLamaWorker.Transform
                             functionCalls.Clear();
                         }
                         var toolCallReturn = generator.GenerateToolCallReturn(message.content, toolinfo.Index);
-                        sb.AppendLine($"{toolCallReturn}{endToken}");
+                        sb.AppendLine($"{toolCallReturn}{endToken}{endSentence}");
                         toolWait = false;
                     }
                     else
@@ -122,7 +132,14 @@ namespace LLamaWorker.Transform
                         }
                         else
                         {
-                            sb.AppendLine($"{assistantToken}\n{message.content}{endToken}");
+                            var content = message.content;
+                            // 去除思考部分
+                            if (!string.IsNullOrWhiteSpace(thinkToken))
+                            {
+                                var parts = content.Split(new[] { thinkToken }, StringSplitOptions.None);
+                                content = parts.Last();
+                            }
+                            sb.AppendLine($"{assistantToken}\n{content}{endToken}{endSentence}");
                         }
                     }
                 }
