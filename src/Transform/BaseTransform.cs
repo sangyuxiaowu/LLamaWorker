@@ -41,6 +41,12 @@ namespace LLamaWorker.Transform
         protected virtual string endToken => "<|im_end|>";
 
         /// <summary>
+        /// 推理提示词是否 Trim 处理
+        /// 注意：DeekSeek 模型若在尾部使用换行符会导致推理返还异常
+        /// </summary>
+        protected virtual bool promptTrim => false;
+
+        /// <summary>
         /// 记录 function 的调用信息
         /// </summary>
         private Dictionary<string, string> functionCalls = new Dictionary<string, string>();
@@ -176,6 +182,12 @@ namespace LLamaWorker.Transform
             {
                 // 一般情况，添加助理提示符
                 sb.AppendLine(assistantToken);
+            }
+
+            if (promptTrim)
+            {
+                // 去除开头末尾的换行符和空格
+                return sb.ToString().Trim();
             }
 
             //Console.WriteLine(sb.ToString());

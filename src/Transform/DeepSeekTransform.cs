@@ -1,7 +1,7 @@
 ﻿namespace LLamaWorker.Transform
 {
     /// <summary>
-    /// ChatML 历史记录转换
+    /// DeepSeek 历史记录转换
     /// </summary>
     public class DeepSeekTransform : BaseHistoryTransform
     {
@@ -22,6 +22,9 @@
 
         /// <inheritdoc/>
         protected override string thinkToken => "</think>";
+
+        /// <inheritdoc/>
+        protected override bool promptTrim => true;
     }
 
 }
