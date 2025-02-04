@@ -21,6 +21,16 @@ namespace LLamaWorker.Transform
         protected virtual string assistantToken => "<|im_start|>assistant";
 
         /// <summary>
+        /// 对话轮次结束标记
+        /// </summary>
+        protected virtual string endSentence => "";
+
+        /// <summary>
+        /// 思考标记
+        /// </summary>
+        protected virtual string thinkToken => "";
+
+        /// <summary>
         /// 系统标记
         /// </summary>
         protected virtual string systemToken => "<|im_start|>system";
@@ -29,6 +39,12 @@ namespace LLamaWorker.Transform
         /// 结束标记
         /// </summary>
         protected virtual string endToken => "<|im_end|>";
+
+        /// <summary>
+        /// 推理提示词是否 Trim 处理
+        /// 注意：DeekSeek 模型若在尾部使用换行符会导致推理返还异常
+        /// </summary>
+        protected virtual bool promptTrim => false;
 
         /// <summary>
         /// 记录 function 的调用信息
@@ -76,7 +92,7 @@ namespace LLamaWorker.Transform
                     if (systemAdd || toolWait) continue;
                     systemAdd = true;
                     // 模型不支持系统消息角色设定
-                    if (string.IsNullOrWhiteSpace(systemToken))
+                    if (string.IsNullOrEmpty(systemToken))
                     {
                         systemMessage = $"{message.content} {toolPrompt}";
                     }
@@ -100,7 +116,7 @@ namespace LLamaWorker.Transform
                             functionCalls.Clear();
                         }
                         var toolCallReturn = generator.GenerateToolCallReturn(message.content, toolinfo.Index);
-                        sb.AppendLine($"{toolCallReturn}{endToken}");
+                        sb.AppendLine($"{toolCallReturn}{endToken}{endSentence}");
                         toolWait = false;
                     }
                     else
@@ -122,7 +138,14 @@ namespace LLamaWorker.Transform
                         }
                         else
                         {
-                            sb.AppendLine($"{assistantToken}\n{message.content}{endToken}");
+                            var content = message.content;
+                            // 去除思考部分
+                            if (!string.IsNullOrWhiteSpace(thinkToken))
+                            {
+                                var parts = content.Split(new[] { thinkToken }, StringSplitOptions.None);
+                                content = parts.Last();
+                            }
+                            sb.AppendLine($"{assistantToken}\n{content}{endToken}{endSentence}");
                         }
                     }
                 }
@@ -159,6 +182,12 @@ namespace LLamaWorker.Transform
             {
                 // 一般情况，添加助理提示符
                 sb.AppendLine(assistantToken);
+            }
+
+            if (promptTrim)
+            {
+                // 去除开头末尾的换行符和空格
+                return sb.ToString().Trim();
             }
 
             //Console.WriteLine(sb.ToString());
