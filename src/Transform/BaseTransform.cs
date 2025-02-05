@@ -147,7 +147,7 @@ namespace LLamaWorker.Transform
                             if (!string.IsNullOrWhiteSpace(thinkToken))
                             {
                                 var parts = content.Split(new[] { thinkToken }, StringSplitOptions.None);
-                                content = parts.Last();
+                                content = parts.Last().Trim();
                             }
                             sb.AppendLine($"{assistantToken}\n{content}{endToken}{endSentence}");
                         }
