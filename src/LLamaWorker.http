@@ -1,6 +1,5 @@
 @LLamaWorker_HostAddress = http://localhost:5114
 
-
 # 测试嵌入请求
 POST {{LLamaWorker_HostAddress}}/v1/embeddings
 Content-Type: application/json
@@ -524,12 +523,12 @@ Content-Type: application/json
      },
     {
         "role": "tool",
-        "content": "30℃",
+        "content": "当前天气晴朗 -5 °C 晴朗 体感温度 -19° 今天天气晴朗。 今晚有大风，最低气温-8°。",
         "tool_call_id": "call_c9bb3941cdfe45a3a4d51dcd5aaf07c3"
     },
     {
         "role": "tool",
-        "content": "33℃",
+        "content": "当前天气  雾霾 3 °C 雾霾 体感温度 3° 今天天气晴朗。 最低气温2°。",
         "tool_call_id": "call_d9938ae2183347f6a62af8141781f63c"
     }
   ],

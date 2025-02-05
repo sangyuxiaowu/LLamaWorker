@@ -30,6 +30,16 @@ public class ToolPromptConfig
     public string FN_CALL_TEMPLATE { get; set; }
 
     /// <summary>
+    /// 函数调用开始标记
+    /// </summary>
+    public string FN_CALL_START { get; set; } = "";
+
+    /// <summary>
+    /// 函数调用结束标记
+    /// </summary>
+    public string FN_CALL_END { get; set; } = "";
+
+    /// <summary>
     /// 函数调用与结果分隔符
     /// </summary>
     public string FN_RESULT_SPLIT { get; set; }
@@ -38,6 +48,16 @@ public class ToolPromptConfig
     /// 工具结果模板
     /// </summary>
     public string FN_RESULT_TEMPLATE { get; set; }
+
+    /// <summary>
+    /// 工具结果开始标记
+    /// </summary>
+    public string FN_RESULT_START { get; set; } = "";
+
+    /// <summary>
+    /// 工具结果结束标记
+    /// </summary>
+    public string FN_RESULT_END { get; set; } = "";
 
     /// <summary>
     /// 函数调提取的正则表达式，用于提取函数名和参数
