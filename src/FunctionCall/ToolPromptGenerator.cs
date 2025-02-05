@@ -73,7 +73,7 @@ namespace LLamaWorker.FunctionCall
         /// <returns></returns>
         public string GenerateToolCall(ToolMeaasge tool, int tpl = 0)
         {
-            return string.Format(_config[tpl].FN_CALL_TEMPLATE, tool.function.name, tool.function.arguments);
+            return string.Format(_config[tpl].FN_CALL_TEMPLATE, tool.function.name, tool.function.arguments, tool.type);
         }
 
         /// <summary>

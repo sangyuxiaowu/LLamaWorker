@@ -125,6 +125,8 @@ namespace LLamaWorker.Transform
                         if (message.tool_calls?.Length > 0)
                         {
                             sb.AppendLine($"{assistantToken}");
+
+                            sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_CALL_START);
                             foreach (var toolCall in message.tool_calls)
                             {
                                 var toolCallPrompt = generator.GenerateToolCall(toolCall, toolinfo.Index);
@@ -132,6 +134,8 @@ namespace LLamaWorker.Transform
                                 // 创建占位，等待工具调用结果
                                 functionCalls.Add(toolCall.id, "");
                             }
+                            sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_CALL_END);
+
                             var toolSplit = generator.GetToolResultSplit(toolinfo.Index);
                             sb.Append($"{toolSplit}");
                             toolWait = true;
@@ -163,11 +167,13 @@ namespace LLamaWorker.Transform
             var lastMessage = history.LastOrDefault();
             if (lastMessage?.role == "tool" && functionCalls.Count > 0)
             {
+                sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_RESULT_START);
                 // 添加工具调用结果
                 foreach (var call in functionCalls)
                 {
                     sb.AppendLine(call.Value);
                 }
+                sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_RESULT_END);
                 functionCalls.Clear();
                 // 添加工具推理提示符
                 sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_EXIT);
