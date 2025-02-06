@@ -48,9 +48,15 @@ static async Task<Blocks> CreateBlocks()
 
             sendButton?.Click(streamingFn: i =>
             {
+                var modelDropdown = Dropdown.Payload(i.Data[4]);
+                if (modelDropdown.Count()== 0)
+                {
+                    throw new Exception("No model selected.");
+                }
+
                 string server = Textbox.Payload(i.Data[0]);
                 string token = Textbox.Payload(i.Data[3]);
-                string model = Dropdown.Payload(i.Data[4]).Single();
+                string model = modelDropdown.Single();
                 IList<ChatbotMessagePair> chatHistory = Chatbot.Payload(i.Data[1]);
                 string userInput = Textbox.Payload(i.Data[2]);
                 return ProcessChatMessages(server, token, model, chatHistory, userInput);
@@ -284,6 +290,17 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
                 {
                     continue;
                 }
+                // 处理 DeepSeek 的 think 标签
+
+                if (text== "<think>")
+                {
+                    text = "```\n";
+                }
+                if (text == "</think>")
+                {
+                    text = "\n```";
+                }
+
                 chatHistory[^1].AiMessage.TextMessage += text;
                 yield return gr.Output("", chatHistory);
             }
