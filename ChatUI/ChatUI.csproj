@@ -4,8 +4,4 @@
 	<ProjectReference Include="..\LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Compile Include="..\src\Config\LLmModelSettings.cs" />
-	</ItemGroup>
-
 </Project>
