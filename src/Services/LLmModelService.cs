@@ -38,55 +38,60 @@ namespace LLamaWorker.Services
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
 
+        private readonly object _modelLock = new object();
+
         /// <summary>
         /// 初始化指定模型
         /// </summary>
         public void InitModelIndex()
         {
-
-            if (_settings.Count == 0)
+            lock (_modelLock)
             {
-                _logger.LogError("No model settings.");
-                throw new ArgumentException("No model settings.");
+
+                if (_settings.Count == 0)
+                {
+                    _logger.LogError("No model settings.");
+                    throw new ArgumentException("No model settings.");
+                }
+
+                // 从配置中获取模型索引
+                int loadModelIndex = GlobalSettings.CurrentModelIndex;
+
+                // 检查模型是否已加载，且索引相同
+                if (GlobalSettings.IsModelLoaded && _loadModelIndex == loadModelIndex)
+                {
+                    _logger.LogInformation("Model has been loaded.");
+                    return;
+                }
+
+                if (loadModelIndex < 0 || loadModelIndex >= _settings.Count)
+                {
+                    _logger.LogError("Invalid model index: {modelIndex}.", loadModelIndex);
+                    throw new ArgumentException("Invalid model index.");
+                }
+
+                var usedset = _settings[loadModelIndex];
+
+                if (string.IsNullOrWhiteSpace(usedset.ModelParams.ModelPath) ||
+                                   !File.Exists(usedset.ModelParams.ModelPath))
+                {
+                    _logger.LogError("Model path is error: {path}.", usedset.ModelParams.ModelPath);
+                    throw new ArgumentException("Model path is error.");
+                }
+
+                // 适用于模型切换，先释放模型资源
+                DisposeModel();
+
+                _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
+                if (usedset.ModelParams.Embeddings)
+                {
+                    _embedder = new LLamaEmbedder(_model, usedset.ModelParams);
+                }
+
+                _usedset = usedset;
+                _loadModelIndex = loadModelIndex;
+                GlobalSettings.IsModelLoaded = true;
             }
-
-            // 从配置中获取模型索引
-            int loadModelIndex = GlobalSettings.CurrentModelIndex;
-
-            // 检查模型是否已加载，且索引相同
-            if (GlobalSettings.IsModelLoaded && _loadModelIndex == loadModelIndex)
-            {
-                _logger.LogInformation("Model has been loaded.");
-                return;
-            }
-
-            if (loadModelIndex < 0 || loadModelIndex >= _settings.Count)
-            {
-                _logger.LogError("Invalid model index: {modelIndex}.", loadModelIndex);
-                throw new ArgumentException("Invalid model index.");
-            }
-
-            var usedset = _settings[loadModelIndex];
-
-            if (string.IsNullOrWhiteSpace(usedset.ModelParams.ModelPath) ||
-                               !File.Exists(usedset.ModelParams.ModelPath))
-            {
-                _logger.LogError("Model path is error: {path}.", usedset.ModelParams.ModelPath);
-                throw new ArgumentException("Model path is error.");
-            }
-
-            // 适用于模型切换，先释放模型资源
-            DisposeModel();
-
-            _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
-            if (usedset.ModelParams.Embeddings)
-            {
-                _embedder = new LLamaEmbedder(_model, usedset.ModelParams);
-            }
-
-            _usedset = usedset;
-            _loadModelIndex = loadModelIndex;
-            GlobalSettings.IsModelLoaded = true;
         }
 
 
