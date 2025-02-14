@@ -106,6 +106,13 @@ namespace LLamaWorker
                 app.UseSwaggerUI();
             }
 
+            // 若存在 wwwroot 目录，则使用静态文件
+            if (Directory.Exists("wwwroot"))
+            {
+                app.UseDefaultFiles();
+                app.UseStaticFiles();
+            }
+
             if (!string.IsNullOrEmpty(apiKey))
             {
                 app.Use(async (context, next) =>
