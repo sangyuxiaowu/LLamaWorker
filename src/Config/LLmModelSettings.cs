@@ -27,6 +27,18 @@ namespace LLamaWorker.Config
         /// </summary>
         public string? Version { get; set; }
 
+
+        /// <summary>
+        /// 模型是否存在
+        /// </summary>
+        public bool IsExist
+        {
+            get
+            {
+                return File.Exists(ModelParams.ModelPath);
+            }
+        }
+
         /// <summary>
         /// 对话时未指定系统提示词时使用的默认配置
         /// </summary>
