@@ -97,7 +97,7 @@ namespace LLamaWorker
 
             var app = builder.Build();
 
-            app.UseCors();
+            app.UseCors("AllowCors");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
