@@ -21,6 +21,8 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 
 ## 测试 UI
 
+当服务器启动后，会检查是否存在 `wwwroot` 目录，如果存在，则会启用静态文件服务。
+
 在 [Releases](../../releases) 中提供了一个 `wwwroot.zip` 文件，您可以将其解压到项目目录下，然后运行项目即可访问测试 UI。
 
 ![ui](doc/wwwroot.png)

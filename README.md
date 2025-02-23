@@ -21,6 +21,8 @@ English | [中文](README_CN.md)
 
 ## Test UI
 
+When the server starts, it checks for the existence of the `wwwroot` directory. If it exists, it enables static file services.
+
 A `wwwroot.zip` file is provided in the [Releases](../../releases), you can unzip it to the project directory, and then run the project to access the test UI.
 
 ![ui](doc/wwwroot.png)
