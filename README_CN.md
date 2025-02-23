@@ -16,7 +16,16 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 - **自动释放**: 支持自动释放已加载模型。
 - **函数调用**: 支持函数调用。
 - **API Key 认证**: 支持 API Key 认证。
+- **测试 UI**: 提供了一个友好的开发测试 UI。
 - **Gradio UI Demo**: 提供了一个基于 Gradio.NET 的 UI 演示。
+
+## 测试 UI
+
+在 [Releases](../../releases) 中提供了一个 `wwwroot.zip` 文件，您可以将其解压到项目目录下，然后运行项目即可访问测试 UI。
+
+![ui](doc/wwwroot.png)
+
+该界面提供了模型切换、对话完成、提示完成、聊天记录管理、令牌生成速率展示等功能，您可以通过该界面测试模型效果。
 
 ## 使用 Vulkan 编译版本
 

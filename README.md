@@ -16,7 +16,16 @@ English | [中文](README_CN.md)
 - **Auto-Release**: Supports automatic release of loaded models.
 - **Function Call**: Supports function calls.
 - **API Key Authentication**: Supports API Key authentication.
+- **Test UI**: Provides a friendly development test UI.
 - **Gradio UI Demo**: Provides a UI demo based on Gradio.NET.
+
+## Test UI
+
+A `wwwroot.zip` file is provided in the [Releases](../../releases), you can unzip it to the project directory, and then run the project to access the test UI.
+
+![ui](doc/wwwroot.png)
+
+This interface provides model switching, chat completion, prompt completion, chat history management, token generation rate display, and other functions. You can test the model effect through this interface.
 
 ## Use Vulkan Compiled Version
 
