@@ -49,8 +49,6 @@
         /// <example>null</example>
         public string[]? stop { get; set; } = null;
 
-        private int? _maxTokens = null;
-
         /// <summary>
         /// 最大生成长度：设置每个模型响应的令牌数量限制。
         /// API 支持最多 MaxTokensPlaceholderDoNotTranslate 个令牌，
@@ -58,24 +56,7 @@
         /// 一个令牌大约是典型英文文本的 4 个字符。
         /// </summary>
         /// <example>512</example>
-        public int? max_tokens
-        {
-            get => _maxTokens;
-            set
-            {
-                _maxTokens = value;
-                max_completion_tokens = value;
-            }
-        }
-        public int? max_completion_tokens
-        {
-            get => _maxTokens;
-            set
-            {
-                _maxTokens = value;
-                max_tokens = value;
-            }
-        }
+        public int? max_tokens { get; set; } = null;
 
         /// <summary>
         /// 频率损失：根据令牌到目前为止在文本中出现的频率，按比例减少重复令牌的几率。
