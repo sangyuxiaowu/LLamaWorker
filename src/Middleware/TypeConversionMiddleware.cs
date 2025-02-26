@@ -57,6 +57,14 @@ namespace LLamaWorker.Middleware
                                     );
                                 }
 
+                                // 适配 max_tokens
+                                if (data.TryGetValue("max_tokens", out var max_tokens) && max_tokens.ValueKind == JsonValueKind.Number)
+                                {
+                                    data["max_completion_tokens"] = JsonSerializer.Deserialize<JsonElement>(
+                                        JsonSerializer.Serialize(max_tokens.GetInt32())
+                                    );
+                                }
+
                                 var newBody = JsonSerializer.Serialize(data);
                                 context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(newBody));
                             }
