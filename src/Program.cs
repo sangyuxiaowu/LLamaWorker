@@ -5,6 +5,7 @@ using LLamaWorker.Middleware;
 using LLamaWorker.Services;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text;
 
 namespace LLamaWorker
 {
@@ -14,7 +15,7 @@ namespace LLamaWorker
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
+            Console.OutputEncoding = Encoding.UTF8;
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
