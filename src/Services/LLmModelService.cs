@@ -213,7 +213,7 @@ namespace LLamaWorker.Services
                     new ChatCompletionResponseChoice
                     {
                         index = 0,
-                        finish_reason = completion_tokens >= request.max_tokens ? "length" : "stop",
+                        finish_reason = completion_tokens >= request.max_completion_tokens ? "length" : "stop",
                         message = new ChatCompletionMessage
                         {
                             role = "assistant",
@@ -716,7 +716,7 @@ namespace LLamaWorker.Services
 
             InferenceParams inferenceParams = new InferenceParams()
             {
-                MaxTokens = request.max_tokens.HasValue && request.max_tokens.Value > 0 ? request.max_tokens.Value : -1,
+                MaxTokens = request.max_completion_tokens.HasValue && request.max_completion_tokens.Value > 0 ? request.max_completion_tokens.Value : -1,
                 AntiPrompts = stop,
                 SamplingPipeline = request.seed.HasValue ? new DefaultSamplingPipeline
                 {

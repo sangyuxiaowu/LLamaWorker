@@ -57,7 +57,7 @@ Content-Type: application/json
   "model": "default",
   "stream": true,
   "prompt": "You are a helpful assistant.Say this is a test.",
-  "max_tokens": 100
+  "max_completion_tokens": 100
 }
 
 ###

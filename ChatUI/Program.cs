@@ -177,7 +177,7 @@ static async IAsyncEnumerable<Output> ProcessCompletion(string server, string to
     request.Content = new StringContent(JsonSerializer.Serialize(new CompletionRequest
     {
         model = model,
-        max_tokens = 1024,
+        max_completion_tokens = 1024,
         prompt = inputText,
         stream = true,
     }), Encoding.UTF8, "application/json");
@@ -259,7 +259,7 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
         stream = true,
         messages = messages.ToArray(),
         model = model,
-        max_tokens = 1024,
+        max_completion_tokens = 1024,
         temperature = 0.9f,
         top_p = 0.9f,
     }), Encoding.UTF8, "application/json");
