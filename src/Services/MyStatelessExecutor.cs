@@ -2,6 +2,7 @@ using LLama.Abstractions;
 using LLama.Common;
 using LLama.Exceptions;
 using LLama.Native;
+using LLama.Transformers;
 using System.Runtime.CompilerServices;
 
 namespace LLama
@@ -19,14 +20,14 @@ namespace LLama
         private readonly ILogger? _logger;
         private readonly LLamaBatch _batch;
 
-        // LLava Section
+        /// <inheritdoc />
         public bool IsMultiModal => false;
 
         /// <inheritdoc />
-        public LLavaWeights? ClipModel { get; }
+        public LLavaWeights? ClipModel => default;
 
         /// <inheritdoc />
-        public List<byte[]> Images { get; set; }
+        public List<byte[]> Images { get; }
 
         /// <summary>
         /// The context used by the executor when running the inference.
@@ -34,6 +35,17 @@ namespace LLama
         public LLamaContext Context { get; private set; }
 
         public int PromptTokens { get; set; }
+
+        /// <summary>
+        /// If true, applies the default template to the prompt as defined in the rules for <a href="https://github.com/ggerganov/llama.cpp/wiki/Templates-supported-by-llama_chat_apply_template">llama_chat_apply_template</a> template.  
+        /// </summary>
+        public bool ApplyTemplate { get; init; }
+
+        /// <summary>
+        /// The system message to use with the prompt. Only used when <see cref="ApplyTemplate" /> is true.
+        /// </summary>
+        public string? SystemMessage { get; init; }
+
 
         /// <summary>
         /// Create a new stateless executor which will use the given model
@@ -59,7 +71,7 @@ namespace LLama
             Context = context;
 
             // Reset the sampling pipeline (if there is one)
-            inferenceParams?.SamplingPipeline?.Reset();
+            inferenceParams?.SamplingPipeline.Reset();
 
             // Sanity check inference params
             inferenceParams ??= new InferenceParams();
@@ -69,6 +81,15 @@ namespace LLama
             // Create decoders for the token stream
             var decoder = new StreamingTokenDecoder(Context);
             var antiprocessor = new AntipromptProcessor(inferenceParams.AntiPrompts);
+
+            if (ApplyTemplate)
+            {
+                var template = new LLamaTemplate(_weights.NativeHandle) { AddAssistant = true };
+                if (SystemMessage != null) template.Add("system", SystemMessage);
+
+                template.Add("user", prompt);
+                prompt = PromptTemplateTransformer.ToModelPrompt(template);
+            }
 
             // Tokenize the prompt
             var tokens = Context.Tokenize(prompt, special: true).ToList();
@@ -86,6 +107,7 @@ namespace LLama
             var maxTokens = inferenceParams.MaxTokens < 0 ? int.MaxValue : inferenceParams.MaxTokens;
             for (var i = 0; i < maxTokens && !cancellationToken.IsCancellationRequested; i++)
             {
+
                 // Sample with the pipeline
                 var id = inferenceParams.SamplingPipeline.Sample(Context.NativeHandle, _batch.TokenCount - 1);
 
@@ -126,8 +148,8 @@ namespace LLama
                     var n_left = n_past - tokensKeep;
                     var n_discard = n_left / 2;
 
-                    NativeApi.llama_kv_cache_seq_rm(Context.NativeHandle, (LLamaSeqId)0, tokensKeep, tokensKeep + n_discard);
-                    NativeApi.llama_kv_cache_seq_add(Context.NativeHandle, (LLamaSeqId)0, tokensKeep + n_discard, n_past, -n_discard);
+                    NativeApi.llama_kv_cache_seq_rm(Context.NativeHandle, LLamaSeqId.Zero, tokensKeep, tokensKeep + n_discard);
+                    NativeApi.llama_kv_cache_seq_add(Context.NativeHandle, LLamaSeqId.Zero, tokensKeep + n_discard, n_past, -n_discard);
 
                     n_past -= n_discard;
                 }
