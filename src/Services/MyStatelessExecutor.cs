@@ -5,6 +5,7 @@ using LLama.Native;
 using LLama.Transformers;
 using System.Runtime.CompilerServices;
 
+
 namespace LLama
 {
 
@@ -148,8 +149,8 @@ namespace LLama
                     var n_left = n_past - tokensKeep;
                     var n_discard = n_left / 2;
 
-                    NativeApi.llama_kv_cache_seq_rm(Context.NativeHandle, LLamaSeqId.Zero, tokensKeep, tokensKeep + n_discard);
-                    NativeApi.llama_kv_cache_seq_add(Context.NativeHandle, LLamaSeqId.Zero, tokensKeep + n_discard, n_past, -n_discard);
+                    Context.NativeHandle.KvCacheRemove(LLamaSeqId.Zero, tokensKeep, tokensKeep + n_discard);
+                    Context.NativeHandle.KvCacheSequenceAdd(LLamaSeqId.Zero, tokensKeep + n_discard, n_past, -n_discard);
 
                     n_past -= n_discard;
                 }

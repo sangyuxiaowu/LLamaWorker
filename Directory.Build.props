@@ -15,8 +15,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">
-		<PackageReference Include="LLamaSharp" Version="0.21.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+		<PackageReference Include="LLamaSharp" Version="0.23.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
 		<ProjectReference Include="..\LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj" />
 		<Compile Include="..\src\**\*.cs" />
 		<None Include="..\src\LLamaWorker.http" />
