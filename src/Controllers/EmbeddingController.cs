@@ -1,4 +1,5 @@
-﻿using LLamaWorker.OpenAIModels;
+﻿using LLamaWorker.Config;
+using LLamaWorker.OpenAIModels;
 using LLamaWorker.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -52,13 +53,13 @@ namespace LLamaWorker.Controllers
                 {
                     return Results.BadRequest("Request is null");
                 }
-                // 使用模型服务创建嵌入
-                if (_modelService.IsSupportEmbedding)
+
+                if(string.IsNullOrWhiteSpace(GlobalSettings.EmbedingUse))
                 {
-                    var response = await _modelService.CreateEmbeddingAsync(request, cancellationToken);
-                    return Results.Ok(response);
+                    return Results.BadRequest("Embeding support is not enabled");
                 }
-                else
+
+                if (GlobalSettings.EmbedingUse.StartsWith("http"))
                 {
                     // 转发请求
                     var url = _configuration["EmbedingForward"];
@@ -80,6 +81,11 @@ namespace LLamaWorker.Controllers
                     {
                         return Results.BadRequest(response.ReasonPhrase);
                     }
+                }
+                else
+                {
+                    var response = await _modelService.CreateEmbeddingAsync(request, cancellationToken);
+                    return Results.Ok(response);
                 }
 
             }

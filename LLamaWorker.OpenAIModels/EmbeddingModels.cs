@@ -73,7 +73,7 @@
         /// <summary>
         /// 嵌入向量，是浮点数列表。向量的长度取决于模型，如嵌入指南中所列。
         /// </summary>
-        public IReadOnlyList<float[]> embedding { get; set; }
+        public object embedding { get; set; }
 
         /// <summary>
         /// 对象类型，始终为"embedding"。
