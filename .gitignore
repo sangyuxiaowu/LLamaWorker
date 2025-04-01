@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /*/.config
 /*/appsettings.Development.json
+
+src/wwwroot/

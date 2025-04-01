@@ -48,7 +48,7 @@ static async Task<Blocks> CreateBlocks()
             sendButton?.Click(streamingFn: i =>
             {
                 var modelDropdown = Dropdown.Payload(i.Data[4]);
-                if (modelDropdown.Count()== 0)
+                if (modelDropdown.Count() == 0)
                 {
                     throw new Exception("No model selected.");
                 }
@@ -291,7 +291,7 @@ static async IAsyncEnumerable<Output> ProcessChatMessages(string server, string 
                 }
                 // 处理 DeepSeek 的 think 标签
 
-                if (text== "<think>")
+                if (text == "<think>")
                 {
                     text = "```\n";
                 }

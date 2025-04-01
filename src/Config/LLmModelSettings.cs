@@ -29,13 +29,21 @@ namespace LLamaWorker.Config
 
 
         /// <summary>
+        /// 嵌入支持
+        /// -1: 不支持
+        /// 0 : 支持
+        /// 1 : 仅支持嵌入
+        /// </summary>
+        public int EmbeddingSupport { get; set; } = -1;
+
+        /// <summary>
         /// 模型是否存在
         /// </summary>
         public bool IsExist
         {
             get
             {
-                return File.Exists(ModelParams.ModelPath);
+                return !string.IsNullOrWhiteSpace(ModelParams.ModelPath) && File.Exists(ModelParams.ModelPath);
             }
         }
 

@@ -20,6 +20,11 @@ namespace LLamaWorker.Config
         public static int AutoReleaseTime { get; set; } = 0;
 
         /// <summary>
+        /// 嵌入使用方式
+        /// </summary>
+        public static string EmbedingUse { get; set; } = string.Empty;
+
+        /// <summary>
         /// 初始化全局设置
         /// </summary>
         /// <param name="configuration">配置信息</param>
@@ -28,6 +33,7 @@ namespace LLamaWorker.Config
             var applicationSettings = configuration.GetSection("GlobalSettings");
             CurrentModelIndex = applicationSettings.GetValue<int>("CurrentModelIndex");
             AutoReleaseTime = applicationSettings.GetValue<int>("AutoReleaseTime");
+            EmbedingUse = applicationSettings.GetValue<string>("EmbedingUse") ?? string.Empty;
         }
     }
 }

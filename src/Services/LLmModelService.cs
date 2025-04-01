@@ -26,6 +26,7 @@ namespace LLamaWorker.Services
         private readonly ToolPromptGenerator _toolPromptGenerator;
         private LLmModelSettings _usedset;
         private LLamaWeights _model;
+        private LLamaWeights _emb_model;
         private LLamaEmbedder? _embedder;
 
         // 已加载模型ID，-1表示未加载
@@ -72,8 +73,7 @@ namespace LLamaWorker.Services
 
                 var usedset = _settings[loadModelIndex];
 
-                if (string.IsNullOrWhiteSpace(usedset.ModelParams.ModelPath) ||
-                                   !File.Exists(usedset.ModelParams.ModelPath))
+                if (!usedset.IsExist)
                 {
                     _logger.LogError("Model path is error: {path}.", usedset.ModelParams.ModelPath);
                     throw new ArgumentException("Model path is error.");
@@ -83,14 +83,53 @@ namespace LLamaWorker.Services
                 DisposeModel();
 
                 _model = LLamaWeights.LoadFromFile(usedset.ModelParams);
-                if (usedset.ModelParams.Embeddings)
-                {
-                    _embedder = new LLamaEmbedder(_model, usedset.ModelParams);
-                }
-
                 _usedset = usedset;
                 _loadModelIndex = loadModelIndex;
                 GlobalSettings.IsModelLoaded = true;
+
+                // 初始化嵌入
+                InitEmbedding();
+            }
+        }
+
+        /// <summary>
+        /// 初始化嵌入
+        /// </summary>
+        public void InitEmbedding()
+        {
+            // 未启用嵌入或者嵌入是转发模式
+            if (string.IsNullOrWhiteSpace(GlobalSettings.EmbedingUse) || GlobalSettings.EmbedingUse.StartsWith("http")) return;
+            if (GlobalSettings.EmbedingUse == "now")
+            {
+                if (_usedset.EmbeddingSupport == 0)
+                {
+                    _embedder = new LLamaEmbedder(_model, _usedset.ModelParams);
+                }
+            }
+            else
+            {
+                // 解析嵌入配置为数字
+                if (int.TryParse(GlobalSettings.EmbedingUse, out int embIndex) && embIndex >= 0 && embIndex < _settings.Count)
+                {
+                    var embset = _settings[embIndex];
+                    if (!embset.IsExist)
+                    {
+                        _logger.LogError("Embedding model path is error: {path}.", embset.ModelParams.ModelPath);
+                        throw new ArgumentException("Embedding model path is error.");
+                    }
+                    if (embset.EmbeddingSupport != 1)
+                    {
+                        _logger.LogError("Embedding set is error: {embedingUse}.", embset.EmbeddingSupport);
+                        throw new ArgumentException("Embedding set is error.");
+                    }
+                    _emb_model = LLamaWeights.LoadFromFile(embset.ModelParams);
+                    _embedder = new LLamaEmbedder(_emb_model, embset.ModelParams);
+                }
+                else
+                {
+                    _logger.LogError("Invalid embedding model index: {embedingUse}.", GlobalSettings.EmbedingUse);
+                    throw new ArgumentException("Invalid embedding model index.");
+                }
             }
         }
 
@@ -526,12 +565,6 @@ namespace LLamaWorker.Services
                 return new EmbeddingResponse();
             }
 
-            if (!_usedset.ModelParams.Embeddings)
-            {
-                _logger.LogWarning("Model does not support embeddings.");
-                return new EmbeddingResponse();
-            }
-
             if (_embedder == null)
             {
                 _logger.LogWarning("Embedder is null.");
@@ -541,9 +574,10 @@ namespace LLamaWorker.Services
             int index = 0;
             foreach (var text in request.input)
             {
+                var emb = await _embedder.GetEmbeddings(text, cancellationToken);
                 embeddings.Add(new EmbeddingObject
                 {
-                    embedding = await _embedder.GetEmbeddings(text, cancellationToken),
+                    embedding = request.encoding_format == "base64" ? ConvertToBase64(emb.First()) : emb.First(),
                     index = index++
                 });
             }
@@ -556,9 +590,21 @@ namespace LLamaWorker.Services
         }
 
         /// <summary>
+        /// 转换 float 数组 为 Base64 字符串
+        /// </summary>
+        /// <param name="floatList"></param>
+        /// <returns></returns>
+        private string ConvertToBase64(float[] floatList)
+        {
+            byte[] byteArray = new byte[floatList.Length * sizeof(float)];
+            Buffer.BlockCopy(floatList, 0, byteArray, 0, byteArray.Length);
+            return Convert.ToBase64String(byteArray);
+        }
+
+        /// <summary>
         /// 是否支持嵌入
         /// </summary>
-        public bool IsSupportEmbedding => _usedset.ModelParams.Embeddings;
+        public bool IsSupportEmbedding => _embedder is not null;
 
         #endregion
 
@@ -748,6 +794,7 @@ namespace LLamaWorker.Services
             if (GlobalSettings.IsModelLoaded)
             {
                 _embedder?.Dispose();
+                _emb_model?.Dispose();
                 _model.Dispose();
                 GlobalSettings.IsModelLoaded = false;
                 _loadModelIndex = -1;
