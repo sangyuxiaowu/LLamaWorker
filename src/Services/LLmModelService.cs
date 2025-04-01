@@ -571,21 +571,13 @@ namespace LLamaWorker.Services
                 return new EmbeddingResponse();
             }
 
-            /*
-             // 将 float 数组转换为字节数组
-            byte[] byteArray = new byte[floatList.Length * sizeof(float)];
-            Buffer.BlockCopy(floatList, 0, byteArray, 0, byteArray.Length);
-
-            // 将字节数组编码为 Base64 字符串
-            string base64Str = Convert.ToBase64String(byteArray);
-             */
-
             int index = 0;
             foreach (var text in request.input)
             {
+                var emb = await _embedder.GetEmbeddings(text, cancellationToken);
                 embeddings.Add(new EmbeddingObject
                 {
-                    embedding = await _embedder.GetEmbeddings(text, cancellationToken),
+                    embedding = request.encoding_format=="base64" ? ConvertToBase64(emb.First()):emb.First(),
                     index = index++
                 });
             }
@@ -598,9 +590,21 @@ namespace LLamaWorker.Services
         }
 
         /// <summary>
+        /// 转换 float 数组 为 Base64 字符串
+        /// </summary>
+        /// <param name="floatList"></param>
+        /// <returns></returns>
+        private string ConvertToBase64(float[] floatList)
+        {
+            byte[] byteArray = new byte[floatList.Length * sizeof(float)];
+            Buffer.BlockCopy(floatList, 0, byteArray, 0, byteArray.Length);
+            return Convert.ToBase64String(byteArray);
+        }
+
+        /// <summary>
         /// 是否支持嵌入
         /// </summary>
-        public bool IsSupportEmbedding => _usedset.ModelParams.Embeddings;
+        public bool IsSupportEmbedding => _embedder is not null;
 
         #endregion
 
