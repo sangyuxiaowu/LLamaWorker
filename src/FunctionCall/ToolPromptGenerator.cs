@@ -169,7 +169,8 @@ namespace LLamaWorker.FunctionCall
             // 如果没有工具描述模板，则直接返回序列化的函数信息
             if (string.IsNullOrWhiteSpace(toolDescTemplate))
             {
-                return JsonSerializer.Serialize(new{
+                return JsonSerializer.Serialize(new
+                {
                     type = "function",
                     function = function
                 }, new JsonSerializerOptions

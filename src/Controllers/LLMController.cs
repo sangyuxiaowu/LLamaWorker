@@ -58,6 +58,16 @@ namespace LLamaWorker.Controllers
                 return BadRequest("Invalid model id");
             }
 
+            if (!_settings[modelId].IsExist)
+            {
+                return BadRequest("Model not exist");
+            }
+
+            if (_settings[modelId].EmbeddingSupport == 1)
+            {
+                return BadRequest("Model only support embedding");
+            }
+
             // 保存当前模型索引
             int index = GlobalSettings.CurrentModelIndex;
 

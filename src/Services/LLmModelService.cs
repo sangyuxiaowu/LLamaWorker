@@ -99,9 +99,9 @@ namespace LLamaWorker.Services
         {
             // 未启用嵌入或者嵌入是转发模式
             if (string.IsNullOrWhiteSpace(GlobalSettings.EmbedingUse) || GlobalSettings.EmbedingUse.StartsWith("http")) return;
-            if(GlobalSettings.EmbedingUse == "now")
+            if (GlobalSettings.EmbedingUse == "now")
             {
-                if(_usedset.EmbeddingSupport == 0)
+                if (_usedset.EmbeddingSupport == 0)
                 {
                     _embedder = new LLamaEmbedder(_model, _usedset.ModelParams);
                 }
@@ -117,7 +117,7 @@ namespace LLamaWorker.Services
                         _logger.LogError("Embedding model path is error: {path}.", embset.ModelParams.ModelPath);
                         throw new ArgumentException("Embedding model path is error.");
                     }
-                    if (embset.EmbeddingSupport!=1)
+                    if (embset.EmbeddingSupport != 1)
                     {
                         _logger.LogError("Embedding set is error: {embedingUse}.", embset.EmbeddingSupport);
                         throw new ArgumentException("Embedding set is error.");
@@ -577,7 +577,7 @@ namespace LLamaWorker.Services
                 var emb = await _embedder.GetEmbeddings(text, cancellationToken);
                 embeddings.Add(new EmbeddingObject
                 {
-                    embedding = request.encoding_format=="base64" ? ConvertToBase64(emb.First()):emb.First(),
+                    embedding = request.encoding_format == "base64" ? ConvertToBase64(emb.First()) : emb.First(),
                     index = index++
                 });
             }

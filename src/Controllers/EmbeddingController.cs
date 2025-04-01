@@ -54,7 +54,7 @@ namespace LLamaWorker.Controllers
                     return Results.BadRequest("Request is null");
                 }
 
-                if(string.IsNullOrWhiteSpace(GlobalSettings.EmbedingUse))
+                if (string.IsNullOrWhiteSpace(GlobalSettings.EmbedingUse))
                 {
                     return Results.BadRequest("Embeding support is not enabled");
                 }
