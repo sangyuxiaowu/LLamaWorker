@@ -24,6 +24,9 @@
         protected override string thinkToken => "</think>";
 
         /// <inheritdoc/>
+        protected override string stopThinking => "\n<think>\n\n</think>\n\n";
+
+        /// <inheritdoc/>
         protected override bool promptTrim => true;
     }
 

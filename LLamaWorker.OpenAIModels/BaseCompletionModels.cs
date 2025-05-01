@@ -81,6 +81,11 @@
         /// 用户：最终用户的唯一标识符
         /// </summary>
         public string? user { get; set; }
+
+        /// <summary>
+        /// 针对所有支持深度思考的模型，默认开启深度思考
+        /// </summary>
+        public bool enable_thinking { get; set; } = true;
     }
 
 

@@ -6,6 +6,6 @@ namespace LLamaWorker.Transform
 {
     public interface ITemplateTransform
     {
-        public string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, ToolPromptInfo toolinfo, string toolPrompt);
+        public string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, ToolPromptInfo toolinfo, string toolPrompt, bool thinking);
     }
 }

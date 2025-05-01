@@ -31,6 +31,11 @@ namespace LLamaWorker.Transform
         protected virtual string thinkToken => "";
 
         /// <summary>
+        /// 跳过思考标记
+        /// </summary>
+        protected virtual string stopThinking => "";
+
+        /// <summary>
         /// 系统标记
         /// </summary>
         protected virtual string systemToken => "<|im_start|>system";
@@ -58,8 +63,9 @@ namespace LLamaWorker.Transform
         /// <param name="generator"></param>
         /// <param name="toolinfo"></param>
         /// <param name="toolPrompt"></param>
+        /// <param name="thinking"></param>
         /// <returns></returns>
-        public virtual string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, ToolPromptInfo toolinfo, string toolPrompt = "")
+        public virtual string HistoryToText(ChatCompletionMessage[] history, ToolPromptGenerator generator, ToolPromptInfo toolinfo, string toolPrompt = "", bool thinking = true)
         {
 
             // 若有系统消息，则会放在最开始
@@ -190,10 +196,16 @@ namespace LLamaWorker.Transform
                 sb.Append(assistantToken + "\n");
             }
 
-            if (promptTrim)
+            if (promptTrim && thinking)
             {
                 // 去除开头末尾的换行符和空格
                 return sb.ToString().Trim();
+            }
+
+            if (!thinking)
+            {
+                // 跳过思考过程
+                sb.Append(stopThinking);
             }
 
             //Console.WriteLine(sb.ToString());
