@@ -82,9 +82,9 @@ namespace LLamaWorker.Transform
                         // 此处处理异常，工具激活，但是后面没有工具调用反馈
                         functionCalls.Clear();
                         toolWait = false;
-                        sb.AppendLine(endToken);
+                        sb.Append(endToken + "\n");
                     }
-                    sb.AppendLine($"{userToken}\n{systemMessage}{message.content}{endToken}");
+                    sb.Append($"{userToken}\n{systemMessage}{message.content}{endToken}\n");
                     systemMessage = "";
                 }
                 else if (message.role == "system")
@@ -98,7 +98,7 @@ namespace LLamaWorker.Transform
                     }
                     else
                     {
-                        sb.AppendLine($"{systemToken}\n{message.content}{toolPrompt}{endToken}");
+                        sb.Append($"{systemToken}\n{message.content}{toolPrompt}{endToken}\n");
                     }
                 }
                 else if (message.role == "assistant")
@@ -111,12 +111,12 @@ namespace LLamaWorker.Transform
                         {
                             foreach (var call in functionCalls)
                             {
-                                sb.AppendLine(call.Value);
+                                sb.Append(call.Value + "\n");
                             }
                             functionCalls.Clear();
                         }
                         var toolCallReturn = generator.GenerateToolCallReturn(message.content, toolinfo.Index);
-                        sb.AppendLine($"{toolCallReturn}{endToken}{endSentence}");
+                        sb.Append($"{toolCallReturn}{endToken}{endSentence}\n");
                         toolWait = false;
                     }
                     else
@@ -124,17 +124,17 @@ namespace LLamaWorker.Transform
                         // 存在工具调用
                         if (message.tool_calls?.Length > 0)
                         {
-                            sb.AppendLine($"{assistantToken}");
+                            sb.Append($"{assistantToken}\n");
 
-                            sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_CALL_START);
+                            sb.Append(generator.GetToolPromptConfig(toolinfo.Index).FN_CALL_START + "\n");
                             foreach (var toolCall in message.tool_calls)
                             {
                                 var toolCallPrompt = generator.GenerateToolCall(toolCall, toolinfo.Index);
-                                sb.AppendLine($"{toolCallPrompt}");
+                                sb.Append($"{toolCallPrompt}\n");
                                 // 创建占位，等待工具调用结果
                                 functionCalls.Add(toolCall.id, "");
                             }
-                            sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_CALL_END);
+                            sb.Append(generator.GetToolPromptConfig(toolinfo.Index).FN_CALL_END + "\n");
 
                             var toolSplit = generator.GetToolResultSplit(toolinfo.Index);
                             sb.Append($"{toolSplit}");
@@ -149,7 +149,7 @@ namespace LLamaWorker.Transform
                                 var parts = content.Split(new[] { thinkToken }, StringSplitOptions.None);
                                 content = parts.Last().Trim();
                             }
-                            sb.AppendLine($"{assistantToken}\n{content}{endToken}{endSentence}");
+                            sb.Append($"{assistantToken}\n{content}{endToken}{endSentence}\n");
                         }
                     }
                 }
@@ -167,27 +167,27 @@ namespace LLamaWorker.Transform
             var lastMessage = history.LastOrDefault();
             if (lastMessage?.role == "tool" && functionCalls.Count > 0)
             {
-                sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_RESULT_START);
+                sb.Append(generator.GetToolPromptConfig(toolinfo.Index).FN_RESULT_START + "\n");
                 // 添加工具调用结果
                 foreach (var call in functionCalls)
                 {
-                    sb.AppendLine(call.Value);
+                    sb.Append(call.Value + "\n");
                 }
-                sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_RESULT_END);
+                sb.Append(generator.GetToolPromptConfig(toolinfo.Index).FN_RESULT_END + "\n");
                 functionCalls.Clear();
                 // 添加工具推理提示符
-                sb.AppendLine(generator.GetToolPromptConfig(toolinfo.Index).FN_EXIT);
+                sb.Append(generator.GetToolPromptConfig(toolinfo.Index).FN_EXIT + "\n");
             }
             else if (toolWait)
             {
                 // 异常情况，说明最后一条消息是工具调用，激活了工具，但是没有工具调用结果
                 // 结束工具调用，再次提示助理推理
-                sb.AppendLine($"{endToken}{assistantToken}");
+                sb.Append($"{endToken}{assistantToken}\n");
             }
             else
             {
                 // 一般情况，添加助理提示符
-                sb.AppendLine(assistantToken);
+                sb.Append(assistantToken + "\n");
             }
 
             if (promptTrim)
