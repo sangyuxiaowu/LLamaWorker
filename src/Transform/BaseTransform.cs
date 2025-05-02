@@ -196,20 +196,22 @@ namespace LLamaWorker.Transform
                 sb.Append(assistantToken + "\n");
             }
 
-            if (promptTrim && thinking)
+            var historyText = sb.ToString();
+
+            if (promptTrim)
             {
                 // 去除开头末尾的换行符和空格
-                return sb.ToString().Trim();
+                historyText = historyText.Trim();
             }
 
             if (!thinking)
             {
                 // 跳过思考过程
-                sb.Append(stopThinking);
+                historyText += stopThinking;
             }
 
             //Console.WriteLine(sb.ToString());
-            return sb.ToString();
+            return historyText;
         }
 
     }
