@@ -11,10 +11,11 @@ English | [中文](README_CN.md)
 - **OpenAI API Compatible**: Offers an API similar to OpenAI's / Azure OpenAI, making migration and integration easy.
 - **Multi-Model Support**: Supports configuring and switching between different models to meet the needs of various scenarios.
 - **Streaming Response**: Supports streaming responses to improve the efficiency of processing large responses.
-- **Embedding Support**: Provides text embedding functionality with support for various embedding models.
+- **Embedding Support**: Provides text embedding functionality with support for various embedding models, including Base64 return support.
 - **chat templates**: Provides some common chat templates.
 - **Auto-Release**: Supports automatic release of loaded models.
 - **Function Call**: Supports function calls.
+- **Deep Thinking Switch**: Provides API parameters for flexible switching of deep thinking modes.
 - **API Key Authentication**: Supports API Key authentication.
 - **Test UI**: Provides a friendly development test UI.
 - **Gradio UI Demo**: Provides a UI demo based on Gradio.NET.
@@ -151,6 +152,25 @@ LLamaWorker offers the following API endpoints:
 - `/models/info`: Returns basic information about the model
 - `/models/config`: Returns information about configured models
 - `/models/{modelId}/switch`: Switch to a specified model
+
+## Deep Thinking Switch
+
+Provides API parameters for flexible switching of deep thinking modes.
+
+Add the `enable_thinking` parameter in the request, which defaults to `true`. For models that support deep thinking, set it to `false` to turn off the deep thinking mode.
+
+```json
+{
+  "model": "Qwen3-8B",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Where is the temperature high between Beijing and Shanghai?"
+    }
+  ],
+  "enable_thinking": false,
+}
+```
 
 ## Gradio UI Demo
 

@@ -11,10 +11,11 @@ LLamaWorker 是一个基于 [LLamaSharp](https://github.com/SciSharp/LLamaSharp?
 - **兼容 OpenAI API**: 提供与 OpenAI / Azure OpenAI 类似的 API，方便迁移和集成。
 - **多模型支持**: 支持配置和切换不同的模型，满足不同场景的需求。
 - **流式响应**: 支持流式响应，提高大型响应的处理效率。
-- **嵌入支持**: 提供文本嵌入功能，支持多种嵌入模型。
+- **嵌入支持**: 提供文本嵌入功能，支持多种嵌入模型，并提供 Base64 返回支持。
 - **对话模版**: 提供了一些常见的对话模版。
 - **自动释放**: 支持自动释放已加载模型。
 - **函数调用**: 支持函数调用。
+- **深度思考切换**: 提供 API 参数灵活切换深度思考模式。
 - **API Key 认证**: 支持 API Key 认证。
 - **测试 UI**: 提供了一个友好的开发测试 UI。
 - **Gradio UI Demo**: 提供了一个基于 Gradio.NET 的 UI 演示。
@@ -152,6 +153,25 @@ LLamaWorker 提供以下 API 端点：
 - `/models/info`: 返回模型的基本信息
 - `/models/config`: 返回已配置的模型信息
 - `/models/{modelId}/switch`: 切换到指定模型
+
+## 深度思考切换
+
+提供 API 参数灵活切换深度思考模式。
+
+在请求中添加 `enable_thinking` 参数，默认为 `true` ，针对支持深度思考的模型，设置为 `false`，即可关闭深度思考模式。
+
+```json
+{
+  "model": "Qwen3-8B",
+  "messages": [
+    {
+      "role": "user",
+      "content": "北京和上海哪里气温高？"
+    }
+  ],
+  "enable_thinking": false,
+}
+```
 
 ## Gradio UI Demo
 
