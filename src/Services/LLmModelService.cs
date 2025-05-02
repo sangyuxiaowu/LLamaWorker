@@ -532,13 +532,13 @@ namespace LLamaWorker.Services
                     var historyTransform = Activator.CreateInstance(type) as ITemplateTransform;
                     if (historyTransform != null)
                     {
-                        history = historyTransform.HistoryToText(messages, _toolPromptGenerator, _usedset.ToolPrompt, toolPrompt);
+                        history = historyTransform.HistoryToText(messages, _toolPromptGenerator, _usedset.ToolPrompt, toolPrompt, request.enable_thinking);
                     }
                 }
             }
             else
             {
-                history = new BaseHistoryTransform().HistoryToText(messages, _toolPromptGenerator, _usedset.ToolPrompt, toolPrompt);
+                history = new BaseHistoryTransform().HistoryToText(messages, _toolPromptGenerator, _usedset.ToolPrompt, toolPrompt, request.enable_thinking);
             }
 
             return new ChatHistoryResult(history, toolenabled, toolstopwords);
