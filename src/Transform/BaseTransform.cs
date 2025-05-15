@@ -28,12 +28,12 @@ namespace LLamaWorker.Transform
         /// <summary>
         /// 思考标记
         /// </summary>
-        protected virtual string thinkToken => "";
+        protected virtual string thinkToken => "</think>";
 
         /// <summary>
         /// 跳过思考标记
         /// </summary>
-        protected virtual string stopThinking => "";
+        protected virtual string stopThinking => "\n<think>\n\n</think>\n\n";
 
         /// <summary>
         /// 系统标记
