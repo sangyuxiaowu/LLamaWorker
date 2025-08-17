@@ -80,7 +80,10 @@ namespace LLama
                 throw new ArgumentOutOfRangeException(nameof(inferenceParams), $"TokensKeep ({inferenceParams.TokensKeep}) cannot be larger than ContextSize ({Context.ContextSize})");
 
             // Create decoders for the token stream
-            var decoder = new StreamingTokenDecoder(Context);
+            var decoder = new StreamingTokenDecoder(Context)
+            {
+                DecodeSpecialTokens = inferenceParams.DecodeSpecialTokens,
+            };
             var antiprocessor = new AntipromptProcessor(inferenceParams.AntiPrompts);
 
             if (ApplyTemplate)
@@ -108,7 +111,6 @@ namespace LLama
             var maxTokens = inferenceParams.MaxTokens < 0 ? int.MaxValue : inferenceParams.MaxTokens;
             for (var i = 0; i < maxTokens && !cancellationToken.IsCancellationRequested; i++)
             {
-
                 // Sample with the pipeline
                 var id = inferenceParams.SamplingPipeline.Sample(Context.NativeHandle, _batch.TokenCount - 1);
 
@@ -149,8 +151,8 @@ namespace LLama
                     var n_left = n_past - tokensKeep;
                     var n_discard = n_left / 2;
 
-                    Context.NativeHandle.KvCacheRemove(LLamaSeqId.Zero, tokensKeep, tokensKeep + n_discard);
-                    Context.NativeHandle.KvCacheSequenceAdd(LLamaSeqId.Zero, tokensKeep + n_discard, n_past, -n_discard);
+                    Context.NativeHandle.MemorySequenceRemove(LLamaSeqId.Zero, tokensKeep, tokensKeep + n_discard);
+                    Context.NativeHandle.MemorySequenceAdd(LLamaSeqId.Zero, tokensKeep + n_discard, n_past, -n_discard);
 
                     n_past -= n_discard;
                 }

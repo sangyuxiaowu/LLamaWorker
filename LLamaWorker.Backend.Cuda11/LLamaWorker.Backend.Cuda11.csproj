@@ -1,7 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
-  <ItemGroup>
-    <PackageReference Include="LLamaSharp.Backend.Cuda11" Version="0.24.0" />
-  </ItemGroup>
-
-</Project>
