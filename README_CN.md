@@ -124,7 +124,6 @@ LLamaWorker 支持函数调用，目前在配置文件中提供了三个模板�
    ```
 3. 根据您的需求选择项目文件。项目提供了三个版本的项目文件：
    - `LLamaWorker.Backend.Cpu`：适用于 CPU 环境。
-   - `LLamaWorker.Backend.Cuda11`：适用于搭载 CUDA 11 的 GPU 环境。
    - `LLamaWorker.Backend.Cuda12`：适用于搭载 CUDA 12 的 GPU 环境。                                                                                                      
    - `LLamaWorker.Backend.Vulkan`：Vulkan 方案。
    

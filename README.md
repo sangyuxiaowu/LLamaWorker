@@ -124,7 +124,6 @@ Function calls are compatible with OpenAI's API, You can test it with the follow
    ```
 3. Choose the project file according to your needs. The project provides three versions of the project files:
    - `LLamaWorker.Backend.Cpu`: For CPU environments.
-   - `LLamaWorker.Backend.Cuda11`: For GPU environments with CUDA 11.
    - `LLamaWorker.Backend.Cuda12`: For GPU environments with CUDA 12.
    - `LLamaWorker.Backend.Vulkan`: Vulkan. 
    
