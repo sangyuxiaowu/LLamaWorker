@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<TargetFrameworks>net9.0;net10.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.Contains('LLamaWorker.Backend'))">
-		<PackageReference Include="LLamaSharp" Version="0.25.0" />
+		<PackageReference Include="LLamaSharp" Version="0.26.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
 		<ProjectReference Include="..\LLamaWorker.OpenAIModels\LLamaWorker.OpenAIModels.csproj" />
 		<Compile Include="..\src\**\*.cs" />

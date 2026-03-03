@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.9.34616.47
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{986DB560-02A2-47A2-9425-8D6FF4DA3DAC}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Document", "Document", "{98
 		README_CN.md = README_CN.md
 		doc\regex.md = doc\regex.md
 		version.json = version.json
+		StatelessExecutor.cs = StatelessExecutor.cs
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LLamaWorker.Backend.Cpu", "LLamaWorker.Backend.Cpu\LLamaWorker.Backend.Cpu.csproj", "{13F70548-EAB2-4B20-A2C9-7B46E4F18EE0}"

@@ -10,15 +10,13 @@ using LLama.Native;
 using LLama.Transformers;
 using Microsoft.Extensions.Logging;
 
-
 namespace LLama
 {
-
     /// <summary>
     /// This executor infer the input as one-time job. Previous inputs won't impact on the 
     /// response to current input.
     /// </summary>
-    public class MyStatelessExecutor
+    public class StatelessExecutor
         : ILLamaExecutor
     {
         private readonly LLamaWeights _weights;
@@ -50,7 +48,6 @@ namespace LLama
         /// </summary>
         public string? SystemMessage { get; init; }
 
-        public int PromptTokens { get; set; }
 
         /// <summary>
         /// Create a new stateless executor which will use the given model
@@ -58,13 +55,16 @@ namespace LLama
         /// <param name="weights"></param>
         /// <param name="params"></param>
         /// <param name="logger"></param>
-        public MyStatelessExecutor(LLamaWeights weights, IContextParams @params, ILogger? logger = null)
+        public StatelessExecutor(LLamaWeights weights, IContextParams @params, ILogger? logger = null)
         {
             Embeds = [];
             _weights = weights;
             _params = @params;
             _logger = logger;
             _batch = new LLamaBatch();
+
+            Context = _weights.CreateContext(_params, logger);
+            Context.Dispose();
         }
 
 
@@ -72,8 +72,8 @@ namespace LLama
         public async IAsyncEnumerable<string> InferAsync(string prompt, IInferenceParams? inferenceParams = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             // Ensure the context from last time is disposed (it always should be)
-            //if (!Context.NativeHandle.IsClosed)
-            //    Context.Dispose();
+            if (!Context.NativeHandle.IsClosed)
+                Context.Dispose();
 
             // Create an inference context which will be disposed when this method exits
             using var context = _weights.CreateContext(_params, _logger);
@@ -105,7 +105,6 @@ namespace LLama
 
             // Tokenize the prompt
             var tokens = Context.Tokenize(prompt, special: true).ToList();
-            PromptTokens = tokens.Count;
 
             // Evaluate the prompt, in chunks smaller than the max batch size
             var n_past = 0;

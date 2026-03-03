@@ -6,6 +6,7 @@ using LLamaWorker.FunctionCall;
 using LLamaWorker.OpenAIModels;
 using LLamaWorker.Transform;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -40,6 +41,7 @@ namespace LLamaWorker.Services
         };
 
         private readonly object _modelLock = new object();
+        private ConcurrentBag<MyStatelessExecutor> _executorPool = new();
 
         /// <summary>
         /// 初始化指定模型
@@ -86,6 +88,7 @@ namespace LLamaWorker.Services
                 _usedset = usedset;
                 _loadModelIndex = loadModelIndex;
                 GlobalSettings.IsModelLoaded = true;
+                _executorPool = new();
 
                 // 初始化嵌入
                 InitEmbedding();
@@ -180,22 +183,30 @@ namespace LLamaWorker.Services
 
             var chatHistory = GetChatHistory(request);
             var genParams = GetInferenceParams(request, chatHistory.ToolStopWords);
-            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
+            var ex = RentExecutor();
             var result = new StringBuilder();
 
             var messagesContent = request.messages.Select(x => x.content).ToArray();
             var prompt_context = string.Join("", messagesContent);
             var completion_tokens = 0;
+            var prompt_tokens = 0;
 
             _logger.LogDebug("Prompt context: {prompt_context}", chatHistory.ChatHistory);
 
-            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
+            try
             {
-                _logger.LogTrace("Message: {output}", output);
-                result.Append(output);
-                completion_tokens++;
+                await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
+                {
+                    _logger.LogTrace("Message: {output}", output);
+                    result.Append(output);
+                    completion_tokens++;
+                }
             }
-            var prompt_tokens = ex.PromptTokens;
+            finally
+            {
+                prompt_tokens = ex.PromptTokens;
+                ReturnExecutor(ex);
+            }
 
             _logger.LogDebug("Prompt tokens: {prompt_tokens}, Completion tokens: {completion_tokens}", prompt_tokens, completion_tokens);
             _logger.LogDebug("Completion result: {result}", result);
@@ -286,7 +297,7 @@ namespace LLamaWorker.Services
 
             var chatHistory = GetChatHistory(request);
             var genParams = GetInferenceParams(request, chatHistory.ToolStopWords);
-            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
+            var ex = RentExecutor();
 
             var id = $"chatcmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -321,9 +332,11 @@ namespace LLamaWorker.Services
             bool toolActive = false;
 
             // 处理模型输出
-            await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
+            try
             {
-                _logger.LogTrace("Message: {output}", output);
+                await foreach (var output in ex.InferAsync(chatHistory.ChatHistory, genParams, cancellationToken))
+                {
+                    _logger.LogTrace("Message: {output}", output);
 
                 // 存在工具提示时
                 if (chatHistory.IsToolPromptEnabled)
@@ -373,26 +386,31 @@ namespace LLamaWorker.Services
                     }
                 }
 
-                chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
-                {
-                    id = id,
-                    created = created,
-                    model = request.model,
-                    choices = [
-                           new ChatCompletionChunkResponseChoice
-                          {
-                            index = ++index,
-                            delta = new ChatCompletionMessage
-                            {
-                                 role = null,
-                                 content = output
-                            },
-                            finish_reason= null
-                          }
-                      ],
+                    chunk = JsonSerializer.Serialize(new ChatCompletionChunkResponse
+                    {
+                        id = id,
+                        created = created,
+                        model = request.model,
+                        choices = [
+                               new ChatCompletionChunkResponseChoice
+                              {
+                                index = ++index,
+                                delta = new ChatCompletionMessage
+                                {
+                                     role = null,
+                                     content = output
+                                },
+                                finish_reason= null
+                              }
+                          ],
 
-                }, _jsonSerializerOptions);
-                yield return $"data: {chunk}\n\n";
+                    }, _jsonSerializerOptions);
+                    yield return $"data: {chunk}\n\n";
+                }
+            }
+            finally
+            {
+                ReturnExecutor(ex);
             }
 
             // 是否激活了工具提示拦截
@@ -621,17 +639,25 @@ namespace LLamaWorker.Services
                 return new CompletionResponse();
             }
             var genParams = GetInferenceParams(request, null);
-            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
+            var ex = RentExecutor();
             var result = new StringBuilder();
 
             var completion_tokens = 0;
-            await foreach (var output in ex.InferAsync(request.prompt, genParams, cancellationToken))
+            var prompt_tokens = 0;
+            try
             {
-                _logger.LogDebug("Message: {output}", output);
-                result.Append(output);
-                completion_tokens++;
+                await foreach (var output in ex.InferAsync(request.prompt, genParams, cancellationToken))
+                {
+                    _logger.LogDebug("Message: {output}", output);
+                    result.Append(output);
+                    completion_tokens++;
+                }
             }
-            var prompt_tokens = ex.PromptTokens;
+            finally
+            {
+                prompt_tokens = ex.PromptTokens;
+                ReturnExecutor(ex);
+            }
 
             return new CompletionResponse
             {
@@ -669,7 +695,7 @@ namespace LLamaWorker.Services
                 yield break;
             }
             var genParams = GetInferenceParams(request, null);
-            var ex = new MyStatelessExecutor(_model, _usedset.ModelParams);
+            var ex = RentExecutor();
             var id = $"cmpl-{Guid.NewGuid():N}";
             var created = DateTimeOffset.Now.ToUnixTimeSeconds();
             int index = 0;
@@ -689,25 +715,32 @@ namespace LLamaWorker.Services
                 }
             }, _jsonSerializerOptions);
             yield return $"data: {chunk}\n\n";
-            await foreach (var output in ex.InferAsync(request.prompt, genParams, cancellationToken))
+            try
             {
-                _logger.LogDebug("Message: {output}", output);
-                chunk = JsonSerializer.Serialize(new CompletionResponse
+                await foreach (var output in ex.InferAsync(request.prompt, genParams, cancellationToken))
                 {
-                    id = id,
-                    created = created,
-                    model = request.model,
-                    choices = new[]
+                    _logger.LogDebug("Message: {output}", output);
+                    chunk = JsonSerializer.Serialize(new CompletionResponse
                     {
-                        new CompletionResponseChoice
+                        id = id,
+                        created = created,
+                        model = request.model,
+                        choices = new[]
                         {
-                            index = ++index,
-                            text = output,
-                            finish_reason = null
+                            new CompletionResponseChoice
+                            {
+                                index = ++index,
+                                text = output,
+                                finish_reason = null
+                            }
                         }
-                    }
-                }, _jsonSerializerOptions);
-                yield return $"data: {chunk}\n\n";
+                    }, _jsonSerializerOptions);
+                    yield return $"data: {chunk}\n\n";
+                }
+            }
+            finally
+            {
+                ReturnExecutor(ex);
             }
 
             chunk = JsonSerializer.Serialize(new CompletionResponse
@@ -786,6 +819,20 @@ namespace LLamaWorker.Services
 
         #region Dispose
 
+        private MyStatelessExecutor RentExecutor()
+        {
+            if (_executorPool.TryTake(out var executor))
+            {
+                return executor;
+            }
+            return new MyStatelessExecutor(_model, _usedset.ModelParams);
+        }
+
+        private void ReturnExecutor(MyStatelessExecutor executor)
+        {
+            _executorPool.Add(executor);
+        }
+
         /// <summary>
         /// 主动释放模型资源
         /// </summary>
@@ -793,6 +840,7 @@ namespace LLamaWorker.Services
         {
             if (GlobalSettings.IsModelLoaded)
             {
+                _executorPool = new();
                 _embedder?.Dispose();
                 _emb_model?.Dispose();
                 _model.Dispose();
